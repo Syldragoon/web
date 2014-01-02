@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8">
+
+<!--CSS-->
+<link rel= "stylesheet" media = "screen" type = "text/css" title = "Design" href = "design.css" />
+
+<!--JQuery-->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+<script>
+
+function onSend(test, c)
+{
+  if(test.ret == 1)
+  {
+    $("#result").css({"color" : "green"})
+  }
+  else
+  {
+    $("#result").css({"color" : "red"})
+  }
+
+  $("#result").html(test.output);
+  
+  if(c == "t")
+  {
+    $("#tempDisplay").html(test.response + ' deg C');
+  }
+}
+
+$(document).ready(function(){
+
+  $(".keys, .light, .temp").each(function(){
+    $(this).html($(this).attr('id'));
+  });
+
+  $.post("methods2.php", {action : "init"})
+  .done(function(output){
+    $("#result").html(output);
+  });
+  
+  $(".keys, .light, .temp").click(function(){
+
+    var c = $(this).attr('id');
+
+    $.post("methods2.php", {action : "send", content : c}, "json")
+    .done(function(test){
+      onSend(test, c);
+    });
+
+  });
+
+  $(document).keypress(function(e){
+
+    var array = ["w","x","c","v","b","n",",",";","1","2","~","t"];
+    var c = String.fromCharCode(e.which);
+    
+    if($.inArray(c,array) != -1)
+    {
+      $.post("methods2.php", {action : "send", content : c}, "json")
+      .done(function(test){
+        onSend(test, c);
+      });
+    }
+    else
+    {
+      $("#result").html("Invalid character !").css({"color" : "red"});
+    }
+
+  });
+
+});
+</script>
+
+</head>
+<body>
+
+<div class="main">
+
+<div class="keys" id="w">
+</div>
+
+<div class="keys" id="x">
+</div>
+
+<div class="keys" id="c">
+</div>
+
+<div class="keys" id="v">
+</div>
+
+<div class="keys" id="b">
+</div>
+
+<div class="keys" id="n">
+</div>
+
+<div class="keys" id=",">
+</div>
+
+<div class="keys" id=";">
+</div>
+
+<div class="light" id="1">
+</div>
+
+<div class="light" id="2">
+</div>
+
+<div class="light" id="~">
+</div>
+
+<div class="temp" id="t">
+</div>
+
+</div>
+
+<p id="result"></p>
+<p id="tempDisplay"></p>
+
+</body>
+</html>
