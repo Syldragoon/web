@@ -81,8 +81,6 @@
 
 <script type="text/javascript">
 
-    // GLOBAL VARIABLES
-
     // WebGL variable
     var gl;
 
@@ -113,9 +111,7 @@
     // model view matrix
     var mvMatrix = mat4.create();
     var mvMatrixStack = [];
-
-    // event variables
-
+    
     // keyboard
     var currentlyPressedKeys = {}; // hash table
 
@@ -141,894 +137,834 @@
     var ySpeed = 0;
 
     var filter = 0;
-
-    var lighting = true;
-
-    // MAIN FUNCTIONS
-
+    
     // **start the WebGL program**
     function webGLStart()
     {
-
-	// get element
-	var canvas = document.getElementById("webgl_window");
-
-	// init functions
-	initGL(canvas);
-	initShaders();
-	initBuffers();
-	initTexture();
-	initWorldObjects();
-
-	// clear the background
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-
-	// callbacks
-
-	// keyboard
-	document.onkeydown = handleKeyDown;
-	document.onkeyup = handleKeyUp;
-
-	// mouse
-	canvas.onmousedown = handleMouseDown;
-	document.onmouseup = handleMouseUp;
-	document.onmousemove = handleMouseMove;
-
-	// animation function
-	tick();
-
+		// get element
+		var canvas = document.getElementById("webgl_window");
+	
+		// init functions
+		initGL(canvas);
+		initShaders();
+		initBuffers();
+		initTexture();
+		initWorldObjects();
+	
+		// clear the background
+		gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	
+		// callbacks
+	
+		// keyboard
+		document.onkeydown = handleKeyDown;
+		document.onkeyup = handleKeyUp;
+	
+		// mouse
+		canvas.onmousedown = handleMouseDown;
+		document.onmouseup = handleMouseUp;
+		document.onmousemove = handleMouseMove;
+	
+		// animation function
+		tick();
     }
 
     // **WebGL initialization**
     function initGL(canvas)
     {
-
-	try
-	{
-	    // get context
-	    gl = canvas.getContext("experimental-webgl");
-
-	    // viewport
-	    gl.viewportWidth = canvas.width;
-	    gl.viewportHeight = canvas.height;
-	}
-	catch (e)
-	{
-	}
-
-	if (!gl)
-	{
-	    alert("Could not initialise WebGL, sorry :-(");
-	}
+		try
+		{
+		    // get context
+		    gl = canvas.getContext("experimental-webgl");
+	
+		    // viewport
+		    gl.viewportWidth = canvas.width;
+		    gl.viewportHeight = canvas.height;
+		}
+		catch (e)
+		{
+		}
+	
+		if (!gl)
+		{
+		    alert("Could not initialise WebGL, sorry :-(");
+		    exit()
+		}
     }
 
     // **shader initialization**
     function initShaders()
     {
-
-	// get shaders from the document
-	var fragmentShader = getShader(gl, "shader-fs");
-	var vertexShader = getShader(gl, "shader-vs");
-
-	// start the shader program
-	shaderProgram = gl.createProgram();
-	gl.attachShader(shaderProgram, vertexShader);
-	gl.attachShader(shaderProgram, fragmentShader);
-	gl.linkProgram(shaderProgram);
-
-	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
-	{
-	    alert("Could not initialise shaders");
-	}
-
-	gl.useProgram(shaderProgram);
-
-	// link the attributes between the shader script and the shader program
-	// vertex position
-	shaderProgram.vertexPositionAttribute = gl.getAttribLocation(
-		shaderProgram, "aVertexPosition");
-	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-	// texture coordinates
-	shaderProgram.textureCoordAttribute = gl.getAttribLocation(
-		shaderProgram, "aTextureCoord");
-	gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
-
-	// vertex normal
-	shaderProgram.vertexNormalAttribute = gl.getAttribLocation(
-		shaderProgram, "aVertexNormal");
-	gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
-
-	// link the uniform variables between the shader script and the shader program
-
-	// projection matrix
-	shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram,
-		"uPMatrix");
-
-	// model view matrix
-	shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram,
-		"uMVMatrix");
-
-	// normal matrix
-	shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram,
-		"uNMatrix");
-
-	// sampler for textures
-	shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram,
-		"uSampler");
-
-	// use lighting boolean
-	shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram,
-		"uUseLighting");
-
-	// light parameters
-	shaderProgram.directionalColorUniform = gl.getUniformLocation(
-		shaderProgram, "uDirectionalColor");
-	shaderProgram.ambientColorUniform = gl.getUniformLocation(
-		shaderProgram, "uAmbientColor");
-	shaderProgram.lightingDirectionUniform = gl.getUniformLocation(
-		shaderProgram, "uLightingDirection");
-
-	// alpha for blending (transparency)
-	shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram,
-		"uAlpha");
+		// get shaders from the document
+		var fragmentShader = getShader(gl, "shader-fs");
+		var vertexShader = getShader(gl, "shader-vs");
+	
+		// start the shader program
+		shaderProgram = gl.createProgram();
+		gl.attachShader(shaderProgram, vertexShader);
+		gl.attachShader(shaderProgram, fragmentShader);
+		gl.linkProgram(shaderProgram);
+	
+		if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
+		{
+		    alert("Could not initialise shaders");
+		    exit()
+		}
+		
+		gl.useProgram(shaderProgram);
+		
+		// link the attributes between the shader script and the shader program
+		// vertex position
+		shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+		gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+	
+		// texture coordinates
+		shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+		gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+	
+		// vertex normal
+		shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+		gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+	
+		// link the uniform variables between the shader script and the shader program
+		// projection matrix
+		shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	
+		// model view matrix
+		shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+	
+		// normal matrix
+		shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+	
+		// sampler for textures
+		shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+	
+		// use lighting boolean
+		shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
+	
+		// light parameters
+		shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
+		shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+		shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
+		
+		// alpha for blending (transparency)
+		shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "uAlpha");
     }
 
     // **buffer initialization**
     function initBuffers()
     {
-	initCrateBuffer();
-	initPlanetBuffer();
+		initCrateBuffer();
+		initPlanetBuffer();
     }
 
     // crate
     function initCrateBuffer()
     {
-	// cube vertex position buffer
-
-	// init
-	cubeVertexPositionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
-
-	// fill data
-	vertices =
-	[
-		// Front face
-		-1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
-
-		// Back face
-		-1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
-		-1.0,
-
-		// Top face
-		-1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
-
-		// Bottom face
-		-1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
-		1.0,
-
-		// Right face
-		1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
-
-		// Left face
-		-1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0,
-		-1.0,
-	];
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices),
-		gl.STATIC_DRAW);
-
-	// fill item size
-	cubeVertexPositionBuffer.itemSize = 3;
-
-	// fill number of items
-	cubeVertexPositionBuffer.numItems = 24;
-
-	// cube vertex normal buffer
-	cubeVertexNormalBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
-
-	var vertexNormals =
-	[
-		// Front face
-		0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-
-		// Back face
-		0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
-
-		// Top face
-		0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
-
-		// Bottom face
-		0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
-
-		// Right face
-		1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-
-		// Left face
-		-1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
-	];
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
-		gl.STATIC_DRAW);
-
-	cubeVertexNormalBuffer.itemSize = 3;
-	cubeVertexNormalBuffer.numItems = 24;
-
-	// cube vertex texture coord buffer
-	cubeVertexTextureCoordBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
-
-	var textureCoords =
-	[
-		// Front face
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
-
-		// Back face
-		1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
-
-		// Top face
-		0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,
-
-		// Bottom face
-		1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
-
-		// Right face
-		1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
-
-		// Left face
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
-	];
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords),
-		gl.STATIC_DRAW);
-
-	cubeVertexTextureCoordBuffer.itemSize = 2;
-	cubeVertexTextureCoordBuffer.numItems = 24;
-
-	// cube index vertex buffer
-	cubeVertexIndexBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
-
-	var cubeVertexIndices =
-	[
-		0, 1, 2, 0, 2, 3, // Front face
-		4, 5, 6, 4, 6, 7, // Back face
-		8, 9, 10, 8, 10, 11, // Top face
-		12, 13, 14, 12, 14, 15, // Bottom face
-		16, 17, 18, 16, 18, 19, // Right face
-		20, 21, 22, 20, 22, 23
-	// Left face
-	];
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(
-		cubeVertexIndices), gl.STATIC_DRAW);
-
-	cubeVertexIndexBuffer.itemSize = 1;
-	cubeVertexIndexBuffer.numItems = 36;
+		// **vertex position buffer**
+		// init
+		cubeVertexPositionBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+	
+		// fill data
+		vertices =
+		[
+			// Front face
+			-1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
+	
+			// Back face
+			-1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
+			-1.0,
+	
+			// Top face
+			-1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
+	
+			// Bottom face
+			-1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
+			1.0,
+	
+			// Right face
+			1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
+	
+			// Left face
+			-1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0,
+			-1.0,
+		];
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+	
+		// fill item size
+		cubeVertexPositionBuffer.itemSize = 3;
+	
+		// fill number of items
+		cubeVertexPositionBuffer.numItems = 24;
+	
+		// **vertex normal buffer**
+		// init
+		cubeVertexNormalBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
+		
+		// fill data
+		var vertexNormals =
+		[
+			// Front face
+			0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+	
+			// Back face
+			0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
+	
+			// Top face
+			0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+	
+			// Bottom face
+			0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
+	
+			// Right face
+			1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+	
+			// Left face
+			-1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
+		];
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
+			gl.STATIC_DRAW);
+	
+		cubeVertexNormalBuffer.itemSize = 3;
+		cubeVertexNormalBuffer.numItems = 24;
+	
+		// **vertex texture coord buffer**
+		// init
+		cubeVertexTextureCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+		
+		// fill data
+		var textureCoords =
+		[
+			// Front face
+			0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+	
+			// Back face
+			1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+	
+			// Top face
+			0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,
+	
+			// Bottom face
+			1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+	
+			// Right face
+			1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+	
+			// Left face
+			0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+		];
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	
+		// fill item size
+		cubeVertexTextureCoordBuffer.itemSize = 2;
+		
+		// fill number of items
+		cubeVertexTextureCoordBuffer.numItems = 24;
+		
+		// **index vertex buffer**
+		// init
+		cubeVertexIndexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+		
+		// fill data
+		var cubeVertexIndices =
+		[
+			0, 1, 2, 0, 2, 3, // Front face
+			4, 5, 6, 4, 6, 7, // Back face
+			8, 9, 10, 8, 10, 11, // Top face
+			12, 13, 14, 12, 14, 15, // Bottom face
+			16, 17, 18, 16, 18, 19, // Right face
+			20, 21, 22, 20, 22, 23 // Left face
+		];
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+		
+		// fill item size
+		cubeVertexIndexBuffer.itemSize = 1;
+		
+		// fill number of items
+		cubeVertexIndexBuffer.numItems = 36;
     }
 
     // planet
     function initPlanetBuffer()
     {
-
-	var latitudeBands = 30;
-	var longitudeBands = 30;
-	var radius = 2;
-
-	// fill data
-	var vertexPositionData = [];
-	var normalData = [];
-	var textureCoordData = [];
-
-	for (var latNumber = 0; latNumber <= latitudeBands; latNumber++)
-	{
-
-	    var theta = latNumber * Math.PI / latitudeBands;
-	    var sinTheta = Math.sin(theta);
-	    var cosTheta = Math.cos(theta);
-
-	    for (var longNumber = 0; longNumber <= longitudeBands; longNumber++)
-	    {
-		var phi = longNumber * 2 * Math.PI / longitudeBands;
-		var sinPhi = Math.sin(phi);
-		var cosPhi = Math.cos(phi);
-
-		var x = cosPhi * sinTheta;
-		var y = cosTheta;
-		var z = sinPhi * sinTheta;
-		var u = 1 - (longNumber / longitudeBands);
-		var v = 1 - (latNumber / latitudeBands);
-
-		normalData.push(x);
-		normalData.push(y);
-		normalData.push(z);
-
-		textureCoordData.push(u);
-		textureCoordData.push(v);
-
-		vertexPositionData.push(radius * x);
-		vertexPositionData.push(radius * y);
-		vertexPositionData.push(radius * z);
-	    }
-	}
-
-	var indexData = [];
-
-	for (var latNumber = 0; latNumber < latitudeBands; latNumber++)
-	{
-	    for (var longNumber = 0; longNumber < longitudeBands; longNumber++)
-	    {
-
-		var first = (latNumber * (longitudeBands + 1)) + longNumber;
-		var second = first + longitudeBands + 1;
-
-		indexData.push(first);
-		indexData.push(second);
-		indexData.push(first + 1);
-
-		indexData.push(second);
-		indexData.push(second + 1);
-		indexData.push(first + 1);
-	    }
-	}
-
-	// planet vertex normal buffer
-	planetVertexNormalBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexNormalBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalData),
-		gl.STATIC_DRAW);
-	planetVertexNormalBuffer.itemSize = 3;
-	planetVertexNormalBuffer.numItems = normalData.length / 3;
-
-	// planet vertex texture coord buffer
-	planetVertexTextureCoordBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexTextureCoordBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordData),
-		gl.STATIC_DRAW);
-	planetVertexTextureCoordBuffer.itemSize = 2;
-	planetVertexTextureCoordBuffer.numItems = textureCoordData.length / 2;
-
-	// planet vertex position buffer
-	planetVertexPositionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexPositionBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositionData),
-		gl.STATIC_DRAW);
-	planetVertexPositionBuffer.itemSize = 3;
-	planetVertexPositionBuffer.numItems = vertexPositionData.length / 3;
-
-	// planet vertex index buffer
-	planetVertexIndexBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planetVertexIndexBuffer);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData),
-		gl.STATIC_DRAW);
-	planetVertexIndexBuffer.itemSize = 1;
-	planetVertexIndexBuffer.numItems = indexData.length;
+		var latitudeBands = 30;
+		var longitudeBands = 30;
+		var radius = 2;
+	
+		// fill data
+		var vertexPositionData = [];
+		var normalData = [];
+		var textureCoordData = [];
+	
+		for (var latNumber = 0; latNumber <= latitudeBands; latNumber++)
+		{
+	
+		    var theta = latNumber * Math.PI / latitudeBands;
+		    var sinTheta = Math.sin(theta);
+		    var cosTheta = Math.cos(theta);
+	
+		    for (var longNumber = 0; longNumber <= longitudeBands; longNumber++)
+		    {
+				var phi = longNumber * 2 * Math.PI / longitudeBands;
+				var sinPhi = Math.sin(phi);
+				var cosPhi = Math.cos(phi);
+		
+				var x = cosPhi * sinTheta;
+				var y = cosTheta;
+				var z = sinPhi * sinTheta;
+				var u = 1 - (longNumber / longitudeBands);
+				var v = 1 - (latNumber / latitudeBands);
+		
+				normalData.push(x);
+				normalData.push(y);
+				normalData.push(z);
+		
+				textureCoordData.push(u);
+				textureCoordData.push(v);
+		
+				vertexPositionData.push(radius * x);
+				vertexPositionData.push(radius * y);
+				vertexPositionData.push(radius * z);
+		    }
+		}
+	
+		var indexData = [];
+	
+		for (var latNumber = 0; latNumber < latitudeBands; latNumber++)
+		{
+		    for (var longNumber = 0; longNumber < longitudeBands; longNumber++)
+		    {
+				var first = (latNumber * (longitudeBands + 1)) + longNumber;
+				var second = first + longitudeBands + 1;
+		
+				indexData.push(first);
+				indexData.push(second);
+				indexData.push(first + 1);
+		
+				indexData.push(second);
+				indexData.push(second + 1);
+				indexData.push(first + 1);
+		    }
+		}
+	
+		// **vertex normal buffer**
+		planetVertexNormalBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexNormalBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalData), gl.STATIC_DRAW);
+		planetVertexNormalBuffer.itemSize = 3;
+		planetVertexNormalBuffer.numItems = normalData.length / 3;
+	
+		// **vertex texture coord buffer**
+		planetVertexTextureCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexTextureCoordBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordData), gl.STATIC_DRAW);
+		planetVertexTextureCoordBuffer.itemSize = 2;
+		planetVertexTextureCoordBuffer.numItems = textureCoordData.length / 2;
+	
+		// **vertex position buffer**
+		planetVertexPositionBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexPositionBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositionData), gl.STATIC_DRAW);
+		planetVertexPositionBuffer.itemSize = 3;
+		planetVertexPositionBuffer.numItems = vertexPositionData.length / 3;
+	
+		// **vertex index buffer**
+		planetVertexIndexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planetVertexIndexBuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), gl.STATIC_DRAW);
+		planetVertexIndexBuffer.itemSize = 1;
+		planetVertexIndexBuffer.numItems = indexData.length;
     }
 
     // texture initialization
     function initTexture()
     {
-
-	initCubeTexture();
-	initPlanetTexture();
+		initCubeTexture();
+		initPlanetTexture();
     }
 
     function initCubeTexture()
     {
-
-	// create textures
-	var image = new Image();
-
-	for (var i = 0; i < 3; i++)
-	{
-	    var texture = gl.createTexture();
-	    texture.image = image;
-	    cubeTextures.push(texture);
-	}
-
-	// load textures
-	image.onload = function()
-	{
-	    handleLoadedTexture(cubeTextures)
-	}
-
-	// image source file
-	image.src = "crate.gif";
-
+		// create textures
+		var image = new Image();
+	
+		for (var i = 0; i < 3; i++)
+		{
+		    var texture = gl.createTexture();
+		    texture.image = image;
+		    cubeTextures.push(texture);
+		}
+	
+		// load textures
+		image.onload = function()
+		{
+		    handleLoadedTexture(cubeTextures)
+		}
+	
+		// image source file
+		image.src = "ship.jpg";
     }
 
     function initPlanetTexture()
     {
-
-	// create textures
-	var image = new Image();
-
-	for (var i = 0; i < 3; i++)
-	{
-	    var texture = gl.createTexture();
-	    texture.image = image;
-	    planetTextures.push(texture);
-	}
-
-	// load textures
-	image.onload = function()
-	{
-	    handleLoadedTexture(planetTextures)
-	}
-
-	// image source file
-	image.src = "moon.gif";
-
+		// create textures
+		var image = new Image();
+	
+		for (var i = 0; i < 3; i++)
+		{
+		    var texture = gl.createTexture();
+		    texture.image = image;
+		    planetTextures.push(texture);
+		}
+	
+		// load textures
+		image.onload = function()
+		{
+		    handleLoadedTexture(planetTextures)
+		}
+	
+		// image source file
+		image.src = "moon.gif";
     }
 
     // init objects
     function initWorldObjects()
     {
-
-	var numPlanets = 1;
-
-	for (var i = 0; i < numPlanets; i++)
-	{
-	    planets.push(new Planet(2, 0));
-	}
-
+		var numPlanets = 1;
+	
+		for (var i = 0; i < numPlanets; i++)
+		{
+		    planets.push(new Planet(2, 0));
+		}
     }
-
+    
     // keyboard events
     function handleKeyDown(event)
     {
-
-	currentlyPressedKeys[event.keyCode] = true;
-
-	if (String.fromCharCode(event.keyCode) == "F")
-	{
-	    filter += 1;
-	    if (filter == 3)
-	    {
-		filter = 0;
-	    }
-	}
+		currentlyPressedKeys[event.keyCode] = true;
+	
+		if (String.fromCharCode(event.keyCode) == "F")
+		{
+		    filter += 1;
+		    if (filter == 3)
+		    {
+				filter = 0;
+		    }
+		}
     }
 
     function handleKeyUp(event)
     {
-	currentlyPressedKeys[event.keyCode] = false;
+		currentlyPressedKeys[event.keyCode] = false;
     }
 
     // mouse events
     function handleMouseDown(event)
     {
-	mouseDown = true;
-	lastMouseX = event.clientX;
-	lastMouseY = event.clientY;
+		mouseDown = true;
+		lastMouseX = event.clientX;
+		lastMouseY = event.clientY;
     }
 
     function handleMouseUp(event)
     {
-	mouseDown = false;
+		mouseDown = false;
     }
-
+    
     function handleMouseMove(event)
     {
-	if (!mouseDown)
-	{
-	    return;
-	}
-
-	var newX = event.clientX;
-	var newY = event.clientY;
-
-	var deltaX = newX - lastMouseX
-	var newRotationMatrix = mat4.create();
-	mat4.identity(newRotationMatrix);
-	mat4.rotate(newRotationMatrix, degToRad(deltaX / 10),
-	[
-		0, 1, 0
-	]);
-
-	var deltaY = newY - lastMouseY;
-	mat4.rotate(newRotationMatrix, degToRad(deltaY / 10),
-	[
-		1, 0, 0
-	]);
-
-	mat4
-		.multiply(newRotationMatrix, dragRotationMatrix,
-			dragRotationMatrix);
-
-	lastMouseX = newX
-	lastMouseY = newY;
+		if (!mouseDown)
+		{
+		    return;
+		}
+	
+		var newX = event.clientX;
+		var newY = event.clientY;
+	
+		var deltaX = newX - lastMouseX;
+		var deltaY = newY - lastMouseY;
+		
+		var newRotationMatrix = mat4.create();
+		
+		mat4.identity(newRotationMatrix);
+		mat4.rotate(newRotationMatrix, degToRad(deltaX / 5), [0, 1, 0]);
+		mat4.rotate(newRotationMatrix, degToRad(deltaY / 5), [1, 0, 0]);
+		mat4.multiply(newRotationMatrix, dragRotationMatrix, dragRotationMatrix);
+		
+		lastMouseX = newX;
+		lastMouseY = newY;
     }
-
+    
     // animation function
     function tick()
     {
-	// request a new frame (specified in webgl-utils.js)
-	requestAnimFrame(tick);
-
-	// check keyboard keys
-	handleKeys();
-
-	// draw the scene
-	drawScene();
-
-	// animation function
-	animate();
+		// request a new frame (specified in webgl-utils.js)
+		requestAnimFrame(tick);
+	
+		// check keyboard keys
+		handleKeys();
+	
+		// draw the scene
+		drawScene();
+	
+		// animation function
+		animate();
     }
 
     // check keyboard keys
     function handleKeys()
     {
-	if (currentlyPressedKeys[33])
-	{
-	    // Page Up
-	    z -= 0.05;
-	}
-
-	if (currentlyPressedKeys[34])
-	{
-	    // Page Down
-	    z += 0.05;
-	}
-
-	if (currentlyPressedKeys[37])
-	{
-	    // Left cursor key
-	    ySpeed -= 1;
-	}
-
-	if (currentlyPressedKeys[39])
-	{
-	    // Right cursor key
-	    ySpeed += 1;
-	}
-
-	if (currentlyPressedKeys[38])
-	{
-	    // Up cursor key
-	    xSpeed -= 1;
-	}
-
-	if (currentlyPressedKeys[40])
-	{
-	    // Down cursor key
-	    xSpeed += 1;
-	}
+		if (currentlyPressedKeys[33])
+		{
+		    // Page Up
+		    z -= 0.05;
+		}
+	
+		if (currentlyPressedKeys[34])
+		{
+		    // Page Down
+		    z += 0.05;
+		}
+	
+		if (currentlyPressedKeys[37])
+		{
+		    // Left cursor key
+		    ySpeed -= 1;
+		}
+	
+		if (currentlyPressedKeys[39])
+		{
+		    // Right cursor key
+		    ySpeed += 1;
+		}
+	
+		if (currentlyPressedKeys[38])
+		{
+		    // Up cursor key
+		    xSpeed -= 1;
+		}
+	
+		if (currentlyPressedKeys[40])
+		{
+		    // Down cursor key
+		    xSpeed += 1;
+		}
     }
 
     // draw the scene
     function drawScene()
     {
-	// blending and depth test options
-	var blending = false;
-	if (blending)
-	{
-	    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-	    gl.enable(gl.BLEND);
-	    gl.disable(gl.DEPTH_TEST);
-	    gl.uniform1f(shaderProgram.alphaUniform, 0.5);
-	}
-	else
-	{
-	    gl.disable(gl.BLEND);
-	    gl.enable(gl.DEPTH_TEST);
-	    gl.depthFunc(gl.LESS);
-	    gl.uniform1f(shaderProgram.alphaUniform, 1);
-	}
-
-	// viewport
-	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-
-	// clear the buffers
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-	// projection mode
-	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0,
-		pMatrix);
-
-	// reset the model view matrix
-	mat4.identity(mvMatrix);
-
-	// go to the center of the scene
-	mat4.translate(mvMatrix,
-	[
-		0.0, 0, -5.0
-	]);
-
-	// drag and drop effect
-	//mat4.multiply(mvMatrix, dragRotationMatrix);
-
-	// zoom and rotate with the keyboard
-	mat4.translate(mvMatrix,
-	[
-		0.0, 0.0, z
-	]);
-	mat4.rotate(mvMatrix, degToRad(xRot),
-	[
-		1, 0, 0
-	]);
-	mat4.rotate(mvMatrix, degToRad(yRot),
-	[
-		0, 1, 0
-	]);
-
-	// link the lighting variable with the shader program
-	gl.uniform1i(shaderProgram.useLightingUniform, lighting);
-
-	if (lighting)
-	{
-	    // choose the ambient color
-	    gl.uniform3f(shaderProgram.ambientColorUniform, 1, 1, 1);
-
-	    // choose the lighting direction
-	    var lightingDirection =
-	    [
-		    -0.25, -0.25, -1.0
-	    ];
-	    var adjustedLD = vec3.create();
-	    vec3.normalize(lightingDirection, adjustedLD);
-	    vec3.scale(adjustedLD, -1);
-	    gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
-
-	    // choose the directional color
-	    gl.uniform3f(shaderProgram.directionalColorUniform, 0.5, 0.5, 0.5);
-	}
-
-	/*
-	 for (var i in planets) {
-	 planets[i].draw();
-	 }
-	 */
-
-	drawCrate();
+		var blending = false;
+		var lighting = true;
+		
+		// blending and depth test options
+		if (blending)
+		{
+		    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		    gl.enable(gl.BLEND);
+		    gl.disable(gl.DEPTH_TEST);
+		    gl.uniform1f(shaderProgram.alphaUniform, 0.5);
+		}
+		else
+		{
+		    gl.disable(gl.BLEND);
+		    gl.enable(gl.DEPTH_TEST);
+		    gl.depthFunc(gl.LESS);
+		    gl.uniform1f(shaderProgram.alphaUniform, 1);
+		}
+		
+		// viewport
+		gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	
+		// clear the buffers
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	
+		// projection mode
+		mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	
+		// reset the model view matrix
+		mat4.identity(mvMatrix);
+		
+		// go to the center of the scene
+		mat4.translate(mvMatrix, [0.0, 0, -5.0]);
+		
+		// zoom and rotate with the keyboard
+		mat4.translate(mvMatrix, [0.0, 0.0, z]);
+		mat4.rotate(mvMatrix, degToRad(xRot), [1, 0, 0]);
+		mat4.rotate(mvMatrix, degToRad(yRot), [0, 1, 0]);
+		
+		// drag and drop effect
+		mat4.multiply(mvMatrix, dragRotationMatrix);
+		
+		// link the lighting variable with the shader program
+		gl.uniform1i(shaderProgram.useLightingUniform, lighting);
+	
+		if (lighting)
+		{
+		    // choose the ambient color
+		    gl.uniform3f(shaderProgram.ambientColorUniform, 1, 1, 1);
+		    
+		    // choose the lighting direction
+		    var lightingDirection = [-1, -1, 0];
+		    var adjustedLD = vec3.create();
+		    vec3.normalize(lightingDirection, adjustedLD);
+		    vec3.scale(adjustedLD, -1);
+		    gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
+		    
+		    // choose the directional color
+		    gl.uniform3f(shaderProgram.directionalColorUniform, 1, 0, 0);
+		}
+		
+		/*
+		for (var i in planets) {
+		planets[i].draw();
+		}
+		*/
+		 
+		drawCrate();
     }
 
     // planet object
     function Planet(startingDistance, rotatingSpeed)
     {
-	this.rotatingSpeed = rotatingSpeed;
-	this.angle = 0;
-	this.distance = startingDistance;
+		this.rotatingSpeed = rotatingSpeed;
+		this.angle = 0;
+		this.distance = startingDistance;
     }
 
     // draw planet
     Planet.prototype.draw = function()
     {
-	// record the matrix
-	mvPushMatrix();
-
-	// Move to the planet's position
-	mat4.rotate(mvMatrix, degToRad(this.angle),
-	[
-		0.0, 1.0, 0.0
-	]);
-	mat4.translate(mvMatrix,
-	[
-		this.distance, 0.0, 0.0
-	]);
-
-	// Rotate back so that the planet is facing the viewer
-	mat4.rotate(mvMatrix, degToRad(-this.angle),
-	[
-		0.0, 1.0, 0.0
-	]);
-
-	// Draw the planet
-	drawPlanet();
-
-	// recuperate the last recorded matrix
-	mvPopMatrix();
+		// record the matrix
+		mvPushMatrix();
+	
+		// Move to the planet's position
+		mat4.rotate(mvMatrix, degToRad(this.angle), [0.0, 1.0, 0.0]);
+		mat4.translate(mvMatrix, [this.distance, 0.0, 0.0]);
+		
+		// Rotate back so that the planet is facing the viewer
+		mat4.rotate(mvMatrix, degToRad(-this.angle), [0.0, 1.0, 0.0]);
+	
+		// Draw the planet
+		drawPlanet();
+	
+		// recuperate the last recorded matrix
+		mvPopMatrix();
     }
-
+    
     // animate planet
     Planet.prototype.animate = function(elapsed)
     {
-	this.angle += this.rotationSpeed * elapsed;
+		this.angle += this.rotationSpeed * elapsed;
     }
-
+    
     // draw crate
     function drawCrate()
     {
-	// recuperate the cube vertex position buffer
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,
-		cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-	// recuperate the cube vertex texture coord buffer
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
-	gl.vertexAttribPointer(shaderProgram.textureCoordAttribute,
-		cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-	// recuperate the cube vertex normal buffer
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute,
-		cubeVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0)
-
-	// active texture
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, cubeTextures[filter]);
-
-	// choose the sampler for the texture
-	gl.uniform1i(shaderProgram.samplerUniform, 0);
-
-	// recuperate the vertex index buffer
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
-	setMatrixUniforms();
-	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems,
-		gl.UNSIGNED_SHORT, 0);
+		// get vertex position buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+		gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	
+		// get vertex texture coord buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+		gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	
+		// get vertex normal buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
+		gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, cubeVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0)
+	
+		// active texture
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, cubeTextures[filter]);
+	
+		// choose sampler for texture
+		gl.uniform1i(shaderProgram.samplerUniform, 0);
+	
+		// get the vertex index buffer
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+		
+		// draw
+		setMatrixUniforms();
+		gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
-
+    
     // draw planet
     function drawPlanet()
     {
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, planetTextures[filter]);
-	gl.uniform1i(shaderProgram.samplerUniform, 0);
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexPositionBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,
-		planetVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexTextureCoordBuffer);
-	gl.vertexAttribPointer(shaderProgram.textureCoordAttribute,
-		planetVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexNormalBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute,
-		planetVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planetVertexIndexBuffer);
-	setMatrixUniforms();
-	gl.drawElements(gl.TRIANGLES, planetVertexIndexBuffer.numItems,
-		gl.UNSIGNED_SHORT, 0);
+		// get vertex position buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexPositionBuffer);
+		gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, planetVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		
+		// get vertex texture coord buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexTextureCoordBuffer);
+		gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, planetVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		
+		// get vertex normal buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, planetVertexNormalBuffer);
+		gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, planetVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		
+		// active texture
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, planetTextures[filter]);
+		
+		// choose sampler for texture
+		gl.uniform1i(shaderProgram.samplerUniform, 0);
+		
+		// get vertex index buffer
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planetVertexIndexBuffer);
+		
+		// draw
+		setMatrixUniforms();
+		gl.drawElements(gl.TRIANGLES, planetVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
-
+    
     // animation function
     function animate()
     {
-	// recuperate the current time
-	var timeNow = new Date().getTime();
-
-	if (lastTime != 0)
-	{
-	    // calculate the elapsed time
-	    var elapsed = timeNow - lastTime;
-
-	    xRot += (xSpeed * elapsed) / 1000.0;
-	    yRot += (ySpeed * elapsed) / 1000.0;
-
-	    /*
-	    for (var i in planets) {
-	    planets[i].animate(elapsed);
-	    }
-	     */
-	}
-
-	// set the last time
-	lastTime = timeNow;
+		// recuperate the current time
+		var timeNow = new Date().getTime();
+	
+		if (lastTime != 0)
+		{
+		    // calculate the elapsed time
+		    var elapsed = timeNow - lastTime;
+	
+		    xRot += (xSpeed * elapsed) / 1000.0;
+		    yRot += (ySpeed * elapsed) / 1000.0;
+		    
+		    /*
+		    for (var i in planets) {
+		    planets[i].animate(elapsed);
+		    }
+		    */
+		}
+	
+		// set the last time
+		lastTime = timeNow;
     }
-
-    // SECONDARY FUNCTIONS
-
+    
     // compile shaders
     function getShader(gl, id)
     {
-	// get element
-	var shaderScript = document.getElementById(id);
-	if (!shaderScript)
-	{
-	    return null;
-	}
-
-	// find shaders
-	var str = "";
-	var k = shaderScript.firstChild;
-	while (k)
-	{
-	    if (k.nodeType == 3)
-	    {
-		str += k.textContent;
-	    }
-	    k = k.nextSibling;
-	}
-
-	var shader;
-	if (shaderScript.type == "x-shader/x-fragment")
-	{
-	    shader = gl.createShader(gl.FRAGMENT_SHADER);
-	}
-	else if (shaderScript.type == "x-shader/x-vertex")
-	{
-	    shader = gl.createShader(gl.VERTEX_SHADER);
-	}
-	else
-	{
-	    return null;
-	}
-
-	// compile shaders
-	gl.shaderSource(shader, str);
-	gl.compileShader(shader);
-
-	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-	{
-	    alert(gl.getShaderInfoLog(shader));
-	    return null;
-	}
-
-	return shader;
+		// get element
+		var shaderScript = document.getElementById(id);
+		if (!shaderScript)
+		{
+		    return null;
+		}
+	
+		// find shaders
+		var str = "";
+		var k = shaderScript.firstChild;
+		while (k)
+		{
+		    if (k.nodeType == 3)
+		    {
+				str += k.textContent;
+		    }
+		    k = k.nextSibling;
+		}
+	
+		var shader;
+		if (shaderScript.type == "x-shader/x-fragment")
+		{
+		    shader = gl.createShader(gl.FRAGMENT_SHADER);
+		}
+		else if (shaderScript.type == "x-shader/x-vertex")
+		{
+		    shader = gl.createShader(gl.VERTEX_SHADER);
+		}
+		else
+		{
+		    return null;
+		}
+		
+		// compile shaders
+		gl.shaderSource(shader, str);
+		gl.compileShader(shader);
+	
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+		{
+		    alert(gl.getShaderInfoLog(shader));
+		    return null;
+		}
+	
+		return shader;
     }
-
+    
     // texture loading function
     function handleLoadedTexture(textures)
     {
-
-	// flip the texture on y axis
-	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
-	// load texture[0] with a nearest neighbourhood filtering
-	gl.bindTexture(gl.TEXTURE_2D, textures[0]);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-		textures[0].image);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-	// load texture[1] with a linear filtering
-	gl.bindTexture(gl.TEXTURE_2D, textures[1]);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-		textures[1].image);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-	// load texture[2] with a linear filtering for closed objects and linear mipmap filtering for objects far away
-	gl.bindTexture(gl.TEXTURE_2D, textures[2]);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-		textures[2].image);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
-		gl.LINEAR_MIPMAP_NEAREST);
-	gl.generateMipmap(gl.TEXTURE_2D);
-
-	// end of the loading
-	gl.bindTexture(gl.TEXTURE_2D, null);
+		// flip the texture on y axis
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	
+		// load texture[0] with a nearest neighbourhood filtering
+		gl.bindTexture(gl.TEXTURE_2D, textures[0]);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[0].image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	
+		// load texture[1] with a linear filtering
+		gl.bindTexture(gl.TEXTURE_2D, textures[1]);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[1].image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	
+		// load texture[2] with a linear filtering for closed objects and linear mipmap filtering for objects far away
+		gl.bindTexture(gl.TEXTURE_2D, textures[2]);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[2].image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+		gl.generateMipmap(gl.TEXTURE_2D);
+	
+		// end of the loading
+		gl.bindTexture(gl.TEXTURE_2D, null);
     }
-
+    
     // record the model view matrix
     function mvPushMatrix()
     {
-	var copy = mat4.create();
-	mat4.set(mvMatrix, copy);
-	mvMatrixStack.push(copy);
+		var copy = mat4.create();
+		mat4.set(mvMatrix, copy);
+		mvMatrixStack.push(copy);
     }
-
+    
     // recuperate the last recorded model view matrix
     function mvPopMatrix()
     {
-	if (mvMatrixStack.length == 0)
-	{
-	    throw "Invalid popMatrix!";
-	}
-	mvMatrix = mvMatrixStack.pop();
+		if (mvMatrixStack.length == 0)
+		{
+		    throw "Invalid popMatrix!";
+		}
+		mvMatrix = mvMatrixStack.pop();
     }
-
+    
     // link the projection, model view and normal matrices with the shader program
     function setMatrixUniforms()
     {
-	// projection matrix
-	gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-
-	// model view matrix
-	gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-
-	// normal matrix
-	var normalMatrix = mat3.create();
-	mat4.toInverseMat3(mvMatrix, normalMatrix);
-	mat3.transpose(normalMatrix);
-	gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+		// projection matrix
+		gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+	
+		// model view matrix
+		gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+	
+		// normal matrix
+		var normalMatrix = mat3.create();
+		mat4.toInverseMat3(mvMatrix, normalMatrix);
+		mat3.transpose(normalMatrix);
+		gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
     }
-
+    
     // degree to radian conversion
     function degToRad(degrees)
     {
-	return degrees * Math.PI / 180;
+		return degrees * Math.PI / 180;
     }
+
 </script>
 </head>
 
