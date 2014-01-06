@@ -54,7 +54,7 @@ function webGLStart(canvas)
 
 function addMesh(x, y, z, size, type)
 {
-    console.log("addMesh "+x+" "+y+" "+z+" "+size+" "+type;
+    console.log("addMesh "+x+" "+y+" "+z+" "+size+" "+type);
     
     gMeshList.push(new Mesh(gl, x, y, z, new Buffer(gl, type, size, gBufferSrcDic[type])));
 }
