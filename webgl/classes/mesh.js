@@ -54,6 +54,9 @@ Mesh.prototype.drawMesh = function(shaderProgram, pMatrix, mvMatrix)
 
 Mesh.prototype.draw = function(shaderProgram, pMatrix, mvMatrix)
 {
+    // record the matrix
+    mvPushMatrix(mvMatrix);
+    
     // apply transformations
     mat4.translate(mvMatrix, [ this.x, this.y, this.z ]);
     mat4.rotate(mvMatrix, degToRad(this.xRot), [ 1, 0, 0 ]);
@@ -62,6 +65,9 @@ Mesh.prototype.draw = function(shaderProgram, pMatrix, mvMatrix)
     
     // draw mesh
     this.drawMesh(shaderProgram, pMatrix, mvMatrix);
+    
+    // load the last recorded matrix
+    mvPopMatrix(mvMatrix);
 }
 
 Mesh.prototype.handleKeyDown = function(event)
@@ -73,6 +79,8 @@ Mesh.prototype.handleKeyDown = function(event)
 	{
 	    this.filter = 0;
 	}
+	
+	console.log("New filter: "+this.filter);
     }
 }
 

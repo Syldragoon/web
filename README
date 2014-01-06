@@ -10,8 +10,13 @@ Several buttons are present on web site:
 
 For now, the Arduino code is not added but could be in a next Git repo.
 
-* webgl
+* webgl:
 JQuery, Javascript and WebGL are used to draw a 3D scene.
+
+The scene is firstly empty, you can add objects in the scene with the following parameters:
+- x, y and z positions in the scene
+- size
+- type: cube or sphere
 
 The arrow keys allow to make the meshes rotate, the f keyboard key allows to switch between several texture renderings.
 The scene can be zoomed down or up (Page Up/Page Down) and dragged and dropped with the mouse.

@@ -21,6 +21,10 @@
 		<!--classes-->
 		<script src="classes/buffer.js"></script>
 		<script src="classes/mesh.js"></script>
+		<script src="classes/eventlistener.js"></script>
+		
+		<!--init-->
+		<script src="init.js"></script>
 		
 		<!--main script-->
 		<script src="main.js"></script>
@@ -33,11 +37,36 @@
 			    	.attr('height', '750');
 			    
 			    webGLStart(webglWindow[0]);
-			})
+			    
+			    $('#add_mesh').click(function()
+				{
+					var x = parseInt($('#mesh_x').val());
+					var y = parseInt($('#mesh_y').val());
+					var z = parseInt($('#mesh_z').val());
+					var size = parseInt($('#buffer_size').val());
+					var type = $('#buffer_type').val();
+					addMesh(x, y, z, size, type);
+				});
+			});
 		</script>
 		
 	</head>
 	<body>
 		<canvas id="webgl_window"></canvas>
+		
+		<table>
+			<tr><td><input type="text" id="mesh_x" value="0" /></td></tr>
+			<tr><td><input type="text" id="mesh_y" value="0" /></td></tr>
+			<tr><td><input type="text" id="mesh_z" value="0" /></td></tr>
+			<tr><td><input type="text" id="buffer_size" value="1" /></td></tr>
+			<tr><td>
+				<select name="type" id="buffer_type">
+				    <option value="cube" selected="selected">cube</option>
+				    <option value="sphere">sphere</option>
+				</select>
+			</td></tr>
+			<tr><td><button type="button" id="add_mesh">add mesh</button></td></tr>
+		</table>
+		
 	</body>
 </html>
