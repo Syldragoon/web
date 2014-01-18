@@ -1,12 +1,18 @@
-function Mesh(gl, x, y, z, buffer)
+var gId = 0;
+
+function Mesh(gl, buffer)
 {
-    console.log("new Mesh "+x+" "+y+" "+z);
+    console.log("new Mesh");
     
     this.gl = gl;
-    this.x = x;
-    this.y = y;
-    this.z = z;
     this.buffer = buffer;
+    
+    gId += 1;
+    this.id = gId;
+    
+    this.x = 0;
+    this.y = 0;
+    this.z = 0;
     
     this.xRot = 0;
     this.yRot = 0;

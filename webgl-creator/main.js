@@ -37,7 +37,7 @@ function webGLStart(canvas)
     gEventListener = new EventListener(-20, gMeshList);
     
     // clear the background
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
     
     // keyboard
     $(document).keydown(gEventListener.handleKeyDown);
@@ -52,11 +52,45 @@ function webGLStart(canvas)
     tick();
 }
 
-function addMesh(x, y, z, size, type)
+function addMesh(size, type)
 {
-    console.log("addMesh "+x+" "+y+" "+z+" "+size+" "+type);
+    console.log("addMesh "+size+" "+type);
     
-    gMeshList.push(new Mesh(gl, x, y, z, new Buffer(gl, type, size, gBufferSrcDic[type])));
+    var mesh = new Mesh(gl, new Buffer(gl, type, size, gBufferSrcDic[type]));
+    gMeshList.push(mesh);
+    
+    return mesh;
+}
+
+function deleteMesh(id)
+{
+    console.log("deleteMesh "+id);
+    
+    var mesh = getMeshForId(id);
+    
+    if(mesh != null)
+    {
+	var mesh_index = gMeshList.indexOf(mesh);
+	gMeshList.splice(mesh_index, 1);
+    }
+    
+    return mesh;
+}
+
+function getMeshForId(id)
+{
+    var mesh = null;
+    
+    for (var i = 0; i < gMeshList.length; i++)
+    {
+	if(gMeshList[i].id == id)
+	{
+	    mesh = gMeshList[i];
+	    break;
+	}
+    }
+    
+    return mesh;
 }
 
 // **loop**

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>WebGL Creator</title>
+		
+		<meta charset="utf-8" />
+		
+		<!--CSS-->
+		<link rel= "stylesheet" media = "screen" type = "text/css" title = "Design" href = "design.css" />
+		
+		<!--JQuery-->
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		
+		<!--WebGL tools-->
+		<script src="tools/glMatrix-0.9.5.min.js"></script>
+		<script src="tools/webgl-utils.js"></script>
+		
+		<!--utils-->
+		<script src="tools/utils.js"></script>
+		
+		<!--classes-->
+		<script src="classes/buffer.js"></script>
+		<script src="classes/mesh.js"></script>
+		<script src="classes/eventlistener.js"></script>
+		
+		<!--init-->
+		<script src="init.js"></script>
+		
+		<!--main script-->
+		<script src="main.js"></script>
+		
+		<script>
+			$(document).ready(function()
+			{
+			    webglWindow = $('#webgl_window')
+			    	.attr('width', '700')
+			    	.attr('height', '700');
+			    
+			    webGLStart(webglWindow[0]);
+			    
+			    $('#add_mesh').click(function()
+				{
+					console.log('add_mesh clicked');
+				
+					var size = parseInt($('#buffer_size').val());
+					var type = $('#buffer_type').val();
+					var mesh = addMesh(size, type);
+					
+					var mesh_row1 = '<tr class="'+mesh.id+'">';
+					var mesh_row2 = '<tr class="'+mesh.id+'">';
+					
+					mesh_row1 += '<td rowspan="2">'+mesh.id+'</td><td rowspan="2">'+size+'</td><td rowspan="2">'+type+'</td>'
+					
+					$.each(["x","y","z","xSpeed","ySpeed","zSpeed"],function(attributeIndex,attributeName)
+					{
+					    mesh_row1 += '<td rowspan="2"><input type="text" class="'+attributeName+'" value="'+mesh[attributeName]+'" /></td><td><input type="button" value="+" class="change_'+attributeName+'" /></td>';
+					    mesh_row2 += '<td><input type="button" value="-" class="change_'+attributeName+'" /></td>';
+					});
+					
+					mesh_row1 += '<td rowspan="2"><input type="button" value="delete" class="delete" /></td></tr>';
+					mesh_row2 += '</tr>';
+					
+					$('#mesh_list_table').append(mesh_row1);
+					$('#mesh_list_table').append(mesh_row2);
+				});
+			    
+			    function getMeshId(input)
+			    {
+					var parent_tr = input.parent().parent();
+					var id = parseInt(parent_tr.attr('class'));
+					
+					return id;
+			    }
+			    
+			    function getInput(change_input,attributeName)
+			    {
+					var id = getMeshId(change_input);
+					var input = $('#mesh_list_table .'+id+' .'+attributeName);
+					
+					return input;
+			    }
+			    
+			    function changeInputValue(mesh_id,change_type,input,attributeName)
+			    {
+					var oldVal = parseInt(input.val());
+					var changeWeight = 0;
+					
+					if(attributeName.indexOf('Speed') != -1)
+					{
+					    changeWeight = 10;
+					}
+					else
+					{
+					    changeWeight = 1;
+					}
+					
+					if(!isNaN(oldVal))
+					{
+					    var newVal = oldVal;
+					    
+					    if(change_type == '+')
+						{
+							newVal += changeWeight;
+						}
+					    else if(change_type == '-')
+						{
+							newVal -= changeWeight;
+						}
+					    
+					    input.val(newVal.toString());
+					    setMeshAttribute(mesh_id,newVal,attributeName);
+					    
+					    console.log('mesh '+mesh_id+': '+attributeName+' changed to '+newVal.toString());
+					}
+			    }
+			    
+			    function setMeshAttribute(mesh_id,value,attributeName)
+			    {
+					var mesh = getMeshForId(mesh_id);
+					
+					if(mesh[attributeName] != undefined)
+					{
+					    var parsed_val = parseInt(value);
+					    
+					    if(isNaN(parsed_val))
+						{
+							mesh[attributeName] = 0;
+						}
+					    else
+						{
+							mesh[attributeName] = parsed_val;
+						}
+					    
+						console.log('mesh '+mesh_id+': '+attributeName+' set to '+mesh[attributeName]);
+					}
+					else
+					{
+					    console.log('no attribute '+attributeName+' for mesh');
+					}
+			    }
+			    
+			    $.each(["x","y","z","xSpeed","ySpeed","zSpeed"],function(attributeIndex,attributeName)
+			    {
+					$(document).on('click','#mesh_list_table .change_'+attributeName,function()
+					{
+						changeInputValue(getMeshId($(this)),$(this).val(),getInput($(this),attributeName),attributeName);
+					});
+					
+				    $(document).on('keyup','#mesh_list_table .'+attributeName,function()
+					{
+						setMeshAttribute(getMeshId($(this)),$(this).val(),attributeName);
+					});
+			    });
+			    
+			    $(document).on('click','#mesh_list_table .delete',function()
+				{
+					var mesh_id = getMeshId($(this));
+					deleteMesh(mesh_id);
+					$('#mesh_list_table .'+mesh_id).remove();
+				});
+			});
+		</script>
+		
+	</head>
+	<body>
+	
+		<h1 id="title">Welcome to WebGL Creator!</h1>
+		
+		<div id="description">
+		
+			<p>
+				The scene is firstly empty, you can <span class="add">add objects (add mesh button)</span> in the scene with the following parameters:
+			</p>
+			
+			<ul>
+				<li><span class="add">size</span></li>
+				<li><span class="add">type</span>: cube or sphere</li>
+			</ul>
+			
+			<p>
+				When you added your mesh, you can set <span class="set">its position and rotating speed</span> dynamically.<br/>
+				You can enter a new value in the corresponding <span class="set">field</span> or <span class="set">type on the plus and minus buttons</span>.<br/>
+				If you want to <span class="set">delete</span> your mesh, press <span class="set">delete button</span>.
+			</p>
+			<p>
+				The <span class="scene">arrow keys</span> allow to make the meshes <span class="scene">rotate</span>, the <span class="scene">f</span> keyboard key allows to switch between several <span class="scene">texture renderings</span>.<br/>
+				The scene can be <span class="scene">zoomed down or up (Page Up/Page Down)</span> and <span class="scene">dragged and dropped with the mouse</span>.
+			</p>
+		</div>
+		
+	
+		<canvas id="webgl_window"></canvas>
+		<table id="mesh_add_table">
+			<tr><td>buffer size:<input type="text" id="buffer_size" value="1" /></td></tr>
+			<tr><td>type:
+				<select name="type" id="buffer_type">
+				    <option value="cube" selected="selected">cube</option>
+				    <option value="sphere">sphere</option>
+				</select>
+			</td></tr>
+			<tr><td><button type="button" id="add_mesh">add mesh</button></td></tr>
+		</table>
+		
+		<table id="mesh_list_table">
+			<tr><td>mesh id</td><td>size</td><td>type</td><td colspan="2">x</td><td colspan="2">y</td><td colspan="2">z</td><td colspan="2">xSpeed</td><td colspan="2">ySpeed</td><td colspan="2">zSpeed</td></tr>
+		</table>
+	</body>
+</html>

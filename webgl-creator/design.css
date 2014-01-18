@@ -1,0 +1,129 @@
+@font-face
+{
+	font-family: starcraft_normal;
+	src: url('fonts/starcraft_normal.ttf');
+}
+
+body
+{
+	width : 800px;
+	padding-top : 18px;
+	
+	margin : auto;
+	border : none;
+	
+	background-image: url("pictures/background.jpg");
+	background-size: cover;
+    background-repeat: no-repeat;
+}
+
+#title
+{
+	font-size : 35px;
+	font-weight : bold;
+
+	color : black;
+	font-family : starcraft_normal,"Arial Black",serif;
+}
+
+#description
+{
+	font-size : 15px;
+	font-weight : normal;
+	
+	text-align : justify;
+	
+	background-color : white;
+	border : 2px solid black;
+	color : gray;
+	font-family : starcraft_normal,"Arial Black",serif;
+}
+
+#description span
+{
+	font-weight : bold;
+}
+
+#description span.add
+{
+	color : green;
+}
+
+#description span.set
+{
+	color : blue;
+}
+
+#description span.scene
+{
+	color : orange;
+}
+
+#description ul
+{
+	list-style-type : disc;
+}
+
+#webgl_window
+{
+	border : 2px solid black;
+	margin : 10px;
+}
+
+#mesh_add_table
+{
+	background-color : black;
+	border : 2px solid black;
+	margin : 10px;
+	text-align : center;
+}
+
+#mesh_add_table td
+{
+	background-color : white;
+	width : 150px;
+}
+
+#mesh_add_table td input
+{
+	width : 20px;
+}
+
+#mesh_add_table td select
+{
+	width : 60px;
+}
+
+#mesh_add_table td button
+{
+	width : 50px;
+}
+
+#mesh_list_table
+{
+	background-color : black;
+	border : 2px solid black;
+	margin : 10px;
+	text-align : center;
+}
+
+#mesh_list_table td
+{
+	background-color : white;
+	width : 50px;
+}
+
+#mesh_list_table input
+{
+	width : 50px;
+}
+
+#mesh_list_table input[class^='change']
+{
+	width : 20px;
+	height : 20px;
+}
+
+#mesh_list_table input.delete
+{
+}
