@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>WebGL Labyrinth</title>
+		
+		<meta charset="utf-8" />
+		
+		<!--JQuery-->
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		
+		<!--WebGL tools-->
+		<script src="tools/glMatrix-0.9.5.min.js"></script>
+		<script src="tools/webgl-utils.js"></script>
+		
+		<!--utils-->
+		<script src="tools/utils.js"></script>
+		
+		<!--classes-->
+		<script src="classes/camera.js"></script>
+		<script src="classes/buffer.js"></script>
+		<script src="classes/mesh.js"></script>
+		<script src="classes/eventlistener.js"></script>
+		
+		<!--init-->
+		<script src="init.js"></script>
+		
+		<!--main script-->
+		<script src="main.js"></script>
+		
+		<script>
+			$(document).ready(function()
+			{
+			    webglWindow = $('#webgl_window')
+			    	.attr('width', '700')
+			    	.attr('height', '700');
+			    
+			    webGLStart(webglWindow[0]);
+			});
+		</script>
+		
+	</head>
+	<body>
+		<h1 id="title">Welcome to WebGL Labyrinth!</h1>
+		<canvas id="webgl_window"></canvas>
+	</body>
+</html>

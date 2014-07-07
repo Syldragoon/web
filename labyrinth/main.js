@@ -10,6 +10,9 @@ var gPMatrix = mat4.create();
 // model view matrix
 var gMvMatrix = mat4.create();
 
+// camera
+var gCamera;
+
 // mesh list
 var gMeshList = new Array();
 
@@ -19,11 +22,32 @@ var gEventListener;
 // animation
 var gLastTime = 0;
 
-// buffer dictionary
-var gBufferSrcDic = {};
-gBufferSrcDic["cube"] = "pictures/crate.gif";
-gBufferSrcDic["plan"] = "pictures/wall.jpg";
-gBufferSrcDic["sphere"] = "pictures/moon.gif";
+// wall matrices
+var gFrontWallMatrix = [
+    [1,1,1,1,1,1,1,1,1,1],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [1,1,1,1,1,1,1,1,1,1],
+];
+var gSideWallMatrix = [
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1],
+];
 
 // **start the WebGL program**
 function webGLStart(canvas)
@@ -34,8 +58,52 @@ function webGLStart(canvas)
     gl = initGL(canvas);
     gShaderProgram = initShaderProgram(gl);
     
+    groundSize = gSideWallMatrix.length;
+    
+    // buffers
+    groundBuffer = new Buffer(gl, "plan", groundSize, "pictures/ground.jpg");
+    wallBuffer = new Buffer(gl, "plan", 1, "pictures/wall.jpg");
+    
+    // **camera**
+    gCamera = new Camera(-groundSize/2 + 0.5, -groundSize/2 + 0.5, 0.5, 90, 0);
+    
+    // **meshes**
+    // ground
+    ground = new Mesh(gl, groundBuffer);
+    gMeshList.push(ground);
+    
+    // front walls
+    for(i = 0; i < gFrontWallMatrix.length; i++)
+    {
+	for(j = 0; j < gFrontWallMatrix[i].length; j++)
+	{
+	    if(gFrontWallMatrix[i][j])
+	    {
+    	        wall = new Mesh(gl, wallBuffer);
+    	        wall.generateFrontWall(groundSize, i, j);
+    	        gMeshList.push(wall);
+	    }
+	}
+    }
+    
+    // side walls
+    for(i = 0; i < gSideWallMatrix.length; i++)
+    {
+	for(j = 0; j < gSideWallMatrix[i].length; j++)
+	{
+	    if(gSideWallMatrix[i][j])
+	    {
+	        wall = new Mesh(gl, wallBuffer);
+	        wall.generateSideWall(groundSize, i, j);
+	        gMeshList.push(wall);
+	    }
+	}
+    }
+    
+    console.log("labyrinth ready to be drawn: "+(gMeshList.length - 1)+" walls for ground size: "+groundSize);
+    
     // init event listener
-    gEventListener = new EventListener(-20, gMeshList);
+    gEventListener = new EventListener(gCamera, gMeshList);
     
     // clear the background
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
@@ -51,31 +119,6 @@ function webGLStart(canvas)
     
     // loop
     tick();
-}
-
-function addMesh(size, type)
-{
-    console.log("addMesh "+size+" "+type);
-    
-    var mesh = new Mesh(gl, new Buffer(gl, type, size, gBufferSrcDic[type]));
-    gMeshList.push(mesh);
-    
-    return mesh;
-}
-
-function deleteMesh(id)
-{
-    console.log("deleteMesh "+id);
-    
-    var mesh = getMeshForId(id);
-    
-    if(mesh != null)
-    {
-	var mesh_index = gMeshList.indexOf(mesh);
-	gMeshList.splice(mesh_index, 1);
-    }
-    
-    return mesh;
 }
 
 function getMeshForId(id)
@@ -157,22 +200,16 @@ function drawScene(lighting, blending)
     // reset the model view matrix
     mat4.identity(gMvMatrix);
     
-    // go to the center of the scene
-    mat4.translate(gMvMatrix, [ 0.0, 0, -5.0 ]);
-    
-    // zoom
-    mat4.translate(gMvMatrix, [ 0, 0, gEventListener.getZZoom() ]);
-    
-    // drag and drop effect
-    mat4.multiply(gMvMatrix, gEventListener.getDragRotationMatrix());
+    // set camera
+    gCamera.set(gMvMatrix);
     
     // link the lighting variable with the shader program
     gl.uniform1i(gShaderProgram.useLightingUniform, lighting);
     
-    // draw mesh list
+    // draw meshes
     for (var i = 0; i < gMeshList.length; i++)
     {
-	// draw
+        // draw
 	gMeshList[i].draw(gShaderProgram, gPMatrix, gMvMatrix);
     }
 }
@@ -188,7 +225,10 @@ function animate()
 	// calculate the elapsed time
 	var elapsed = timeNow - gLastTime;
 	
-	// draw mesh list
+	// animate camera
+	gCamera.animate(elapsed);
+	
+	// animate mesh list
 	for (var i = 0; i < gMeshList.length; i++)
 	{
 	    gMeshList[i].animate(elapsed);

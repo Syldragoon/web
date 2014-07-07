@@ -34,3 +34,9 @@ classes:
 shaders:
 * vertex.shdr: used for vertex positions and lighting
 * fragment.shdr: used for colors and blending
+
+labyrinth:
+------
+coded in JQuery, Javascript and WebGL
+
+walk within a 3D labyrinth with arrow keys to move around

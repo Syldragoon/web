@@ -18,7 +18,7 @@ function Buffer(gl, type, size, src)
     this.initTextures();
 }
 
-// cube
+//cube
 Buffer.prototype.initCubeBuffer = function()
 {
     console.log("Buffer::initCubeBuffer");
@@ -54,7 +54,7 @@ Buffer.prototype.initCubeBuffer = function()
     
     for(var i = 0; i < vertices.length; i++)
     {
-	vertices[i] *= this.size;
+	vertices[i] *= this.size/2;
     }
     
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -175,7 +175,7 @@ Buffer.prototype.initPlanBuffer = function()
     
     for(var i = 0; i < vertices.length; i++)
     {
-	vertices[i] *= this.size;
+	vertices[i] *= this.size/2;
     }
     
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -379,7 +379,7 @@ Buffer.prototype.handleLoadedTextures = function()
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.textures[0].image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
+    
     // load texture[1] with a linear filtering
     gl.bindTexture(gl.TEXTURE_2D, this.textures[1]);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.textures[1].image);
@@ -392,7 +392,7 @@ Buffer.prototype.handleLoadedTextures = function()
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
     gl.generateMipmap(gl.TEXTURE_2D);
-
+    
     // end of the loading
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
