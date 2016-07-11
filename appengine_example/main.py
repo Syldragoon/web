@@ -39,10 +39,53 @@ form = '''<form method="get" action="/FormRequest">
 </form>
 '''
 
+form2 = '''<form method="post">
+What is your birthday?
+<br>
+<label>
+Month
+<input type="text" name="month">
+</label>
+<label>
+Day
+<input type="text" name="day">
+</label>
+<label>
+Year
+<input type="text" name="year">
+</label>
+<br>
+<br>
+<input type="submit">
+</form>
+'''
+
+months = ['January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December']
+
+def valid_month(month):
+    month_cap = month.capitalize()
+    if month_cap in months:
+        return month_cap
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         #self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write(form)
+        self.response.write(form2)
+
+    def post(self):
+        m = self.request.get("month")
+        self.response.write("Month is " + m + ", validity check: " + (m if valid_month(m) else "invalid"))
 
 class FormRequest(webapp2.RequestHandler):
     def get(self):
