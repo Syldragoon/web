@@ -14,6 +14,7 @@
 
 import webapp2
 import cgi
+import re
 
 rot13Form = """
 <form method="post" action="/rot13">
@@ -23,8 +24,52 @@ rot13Form = """
 </form>
 """
 
+signUpForm = """
+<form method="post" action="/signup">
+  <h1>Sign up</h1>
+  <label>
+    User name:
+    <input type="text" name="username" value="%(username)s">
+    <span name="errorUsername" style="color: red">%(errorUsername)s</span>
+  </label>
+  <br>
+  <label>
+    Password:
+    <input type="password" name="password">
+  </label>
+  <br>
+  <label>
+    Re-type pasword:
+    <input type="password" name="verify">
+    <span name="errorPwd" style="color: red">%(errorPwd)s</span>
+  </label>
+  <br>
+  <label>
+    Email address:
+    <input type="text" name="email" value="%(email)s">
+    <span name="errorEmail" style="color: red">%(errorEmail)s</span>
+  </label>
+  <br>
+  <br>
+  <label>
+    <input type="submit" value="Create account">
+  </label>
+</form>
+"""
+
+SignUpSuccessHtml = """
+<h1>Welcome, %s!</h1>
+"""
+
 def formatForm(form, value = ""):
     return form % value
+
+def formatSignUpForm(dic = {'username': '',
+                            'email': '',
+                            'errorUsername': '',
+                            'errorPwd': '',
+                            'errorEmail': ''}):
+    return signUpForm % dic
 
 def escape(text):
     return cgi.escape(text, quote=True)
@@ -47,7 +92,18 @@ def convertRot13(text):
 
     return text
 
-#newText = ''
+USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+PWD_RE = re.compile(r"^.{3,20}$")
+EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
+
+def valid_username(username):
+    return USER_RE.match(username)
+
+def valid_pwd(pwd):
+    return PWD_RE.match(pwd)
+
+def valid_email(email):
+    return EMAIL_RE.match(email)
 
 class Rot13FormRequest(webapp2.RequestHandler):
     def get(self):
@@ -59,9 +115,38 @@ class Rot13FormRequest(webapp2.RequestHandler):
         inText = self.request.get('text')
         escText = escape(inText)
         newText = convertRot13(escText)
-        #print "IN: %s, ESC: %s, NEW: %s" % (inText, escText, newText)
         self.redirect('/rot13?text=' + newText)
+
+class SignUpFormRequest(webapp2.RequestHandler):
+    def get(self):
+        self.response.out.write(formatSignUpForm())
+
+    def post(self):
+        esc_username = escape(self.request.get('username'))
+        esc_pwd1 = escape(self.request.get('password'))
+        esc_pwd2 = escape(self.request.get('verify'))
+        esc_email = escape(self.request.get('email'))
+
+        validUserName = valid_username(esc_username)
+        validPwd = valid_pwd(esc_pwd1) and valid_pwd(esc_pwd2) and (esc_pwd1 == esc_pwd2)
+        validEmail = valid_email(esc_email)
+
+        if validUserName and validPwd and validEmail:
+            self.redirect('/signup/welcome?username=' + esc_username)
+        else:
+            self.response.out.write(formatSignUpForm({'username': esc_username,
+                                                  'email': esc_email,
+                                                  'errorUsername': "That's not a valid username." if not validUserName else '',
+                                                  'errorPwd': "Your passwords didn't match." if not validPwd else '',
+                                                  'errorEmail': "That's not a valid email address." if not validEmail else ''}))
+
+class SignUpSuccessRequest(webapp2.RequestHandler):
+    def get(self):
+        esc_username = escape(self.request.get('username'))
+        self.response.out.write(SignUpSuccessHtml % esc_username)
 
 app = webapp2.WSGIApplication([
     ('/rot13', Rot13FormRequest),
+    ('/signup', SignUpFormRequest),
+    ('/signup/welcome', SignUpSuccessRequest)
 ], debug=True)
