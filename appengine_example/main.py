@@ -13,90 +13,55 @@
 # limitations under the License.
 
 import webapp2
+import cgi
 
-form = '''<form method="get" action="/FormRequest">
-
-<select name="q">
-    <option value="1">one</option>
-    <option value="2">two</option>
-    <option value="3">three</option>
-</select>
-
-
-<label>
-    One
-    <input type="radio" name="q" value="one">
-</label>
-<label>
-    Two
-    <input type="radio" name="q" value="two">
-</label>
-<label>
-    Three
-    <input type="radio" name="q" value="three">
-</label>
-<input type="submit">
+rot13Form = """
+<form method="post" action="/rot13">
+  <h1>Convert on ROT13</h1>
+  <textarea name="text">%s</textarea>
+  <input type="submit" value="Convert">
 </form>
-'''
+"""
 
-form2 = '''<form method="post">
-What is your birthday?
-<br>
-<label>
-Month
-<input type="text" name="month">
-</label>
-<label>
-Day
-<input type="text" name="day">
-</label>
-<label>
-Year
-<input type="text" name="year">
-</label>
-<br>
-<br>
-<input type="submit">
-</form>
-'''
+def formatForm(form, value = ""):
+    return form % value
 
-months = ['January',
-          'February',
-          'March',
-          'April',
-          'May',
-          'June',
-          'July',
-          'August',
-          'September',
-          'October',
-          'November',
-          'December']
+def escape(text):
+    return cgi.escape(text, quote=True)
 
-def valid_month(month):
-    month_cap = month.capitalize()
-    if month_cap in months:
-        return month_cap
+def convertRot13(text):
+    # Loop on characters from text
+    for i, c in enumerate(text):
+        # Consider only ASCII letters
+        if (ord(c) < 128) and c.isalpha():
+            # Get first letter depending
+            # on case
+            firstLetter = 'a' if c.islower() else 'A'
 
-class MainPage(webapp2.RequestHandler):
+            # Find 13th letter after
+            # using ASCII code
+            newLetter = chr( ord(firstLetter) + ((ord(c) - ord(firstLetter) + 13) % 26) )
+
+            # Replace coresponding letter in text
+            text = text[:i] + newLetter + text[i+1:]
+
+    return text
+
+#newText = ''
+
+class Rot13FormRequest(webapp2.RequestHandler):
     def get(self):
-        #self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write(form2)
+        inText = self.request.get('text')
+        escText = escape(inText)
+        self.response.out.write(formatForm(rot13Form, escText))
 
     def post(self):
-        m = self.request.get("month")
-        self.response.write("Month is " + m + ", validity check: " + (m if valid_month(m) else "invalid"))
-
-class FormRequest(webapp2.RequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write(self.request)
-
-    def post(self):
-        #self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write(self.request)
+        inText = self.request.get('text')
+        escText = escape(inText)
+        newText = convertRot13(escText)
+        #print "IN: %s, ESC: %s, NEW: %s" % (inText, escText, newText)
+        self.redirect('/rot13?text=' + newText)
 
 app = webapp2.WSGIApplication([
-    ('/', MainPage),
-    ('/FormRequest', FormRequest)
+    ('/rot13', Rot13FormRequest),
 ], debug=True)
