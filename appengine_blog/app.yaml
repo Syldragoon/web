@@ -1,4 +1,4 @@
-application: sylblog
+application: sylblog06
 runtime: python27
 api_version: 1
 threadsafe: true

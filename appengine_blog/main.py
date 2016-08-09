@@ -56,9 +56,11 @@ class BlogNewPost(BaseHandler):
             # Populate DB
             e = BlogEntry(subject=subject, content=content)
             e.put()
+            e_id = e.key().id()
+            print "Adding new entry id %d" % e_id
 
-            # Render new URL with blog
-            self.redirect('/blog')
+            # Render post display
+            self.redirect('/blog/%d' % e_id)
 
         else:
             # Error case
@@ -68,7 +70,17 @@ class BlogNewPost(BaseHandler):
                                  'Please enter subject and content')
 
 
+class BlogDisplayPost(BaseHandler):
+    def get(self, post_id):
+        # Run query to retrieve specific post
+        post = BlogEntry.get_by_id(int(post_id))
+
+        # Render post display
+        self.render('display_post.html', post=post)
+
+
 app = webapp2.WSGIApplication([
     ('/blog', BlogFrontPage),
-    ('/blog/newpost', BlogNewPost)
+    ('/blog/newpost', BlogNewPost),
+    ('/blog/([0-9]+)', BlogDisplayPost)
 ], debug=True)
