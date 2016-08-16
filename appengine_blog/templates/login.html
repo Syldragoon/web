@@ -1,0 +1,19 @@
+<form method="post" action="/blog/login">
+  <h1>Login</h1>
+  <label>
+    User name:
+    <input type="text" name="username" value="{{username}}">
+    <span name="errorUsername">{{error_username}}</span>
+  </label>
+  <br>
+  <label>
+    Password:
+    <input type="password" name="password">
+    <span name="errorPassword">{{error_pwd}}</span>
+  </label>
+  <br>
+  <br>
+  <label>
+    <input type="submit" value="Login">
+  </label>
+</form>

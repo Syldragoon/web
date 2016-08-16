@@ -184,10 +184,47 @@ class BlogRegisterSuccess(BaseHandler):
             self.redirect('/blog/signup')
 
 
+class BlogLogin(BaseHandler):
+    def render_login(self, username='', error_username='', error_pwd=''):
+        self.render('login.html', username=username, error_username=error_username, error_pwd=error_pwd)
+
+    def get(self):
+        self.render_login()
+
+    def post(self):
+        # Retrieve entries
+        username = self.request.get('username')
+        pwd = self.request.get('password')
+
+        # Read cookie
+        cookie_username = self.get_cookie('username')
+
+        # Validity checks
+        error_username = None
+        error_pwd = None
+
+        if not username:
+            error_username = "That's not a valid username."
+        elif not cookie_username or (username != cookie_username):
+            error_username = 'Unknown username'
+        if not pwd:
+            error_pwd = "That's not a valid password."
+
+        # show welcome page in case of not error else
+        # render login page
+        if not (error_username or error_pwd):
+            self.redirect('/blog/signup/welcome')
+        else:
+            self.render_login(username,
+                              error_username if error_username else '',
+                              error_pwd if error_pwd else '')
+
+
 app = webapp2.WSGIApplication([
     ('/blog', BlogFrontPage),
     ('/blog/newpost', BlogNewPost),
     ('/blog/([0-9]+)', BlogDisplayPost),
     ('/blog/signup', BlogRegister),
-    ('/blog/signup/welcome', BlogRegisterSuccess)
+    ('/blog/signup/welcome', BlogRegisterSuccess),
+    ('/blog/login', BlogLogin)
 ], debug=True)
