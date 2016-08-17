@@ -1,6 +1,9 @@
-<h1>Blog listing</h1>
-{%for post in posts%}
-  <p>{{post.subject}}</p>
-  <hr>
-  <textarea>{{post.content}}</textarea>
-{%endfor%}
+{% extends "base.html" %}
+{% block content %}
+    <h2>Blog listing</h2>
+    {%for post in posts%}
+        <p>{{post.subject}}</p>
+        <hr>
+        <textarea>{{post.content}}</textarea>
+    {%endfor%}
+{% endblock %}

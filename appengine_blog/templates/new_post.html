@@ -1,13 +1,16 @@
-<form method="post" action="/blog/newpost">
-  <h1>Create new blog</h1>
-  <label>
-    Subject:
-    <input type="text" name="subject" value="{{subject}}">
-  </label>
-  <label>
-    Content:
-    <textarea name="content">{{content}}</textarea>
-  </label>
-  <div>{{error}}</div>
-  <input type="submit" value="Submit">
-</form>
+{% extends "base.html" %}
+{% block content %}
+    <form method="post" action="/blog/newpost">
+        <h2>Create new blog</h2>
+        <label>
+            Subject:
+            <input type="text" name="subject" value="{{subject}}">
+        </label>
+        <label>
+            Content:
+            <textarea name="content">{{content}}</textarea>
+        </label>
+        <div>{{error}}</div>
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}
