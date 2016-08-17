@@ -55,7 +55,8 @@ class BaseHandler(webapp2.RequestHandler):
         self.write(self.render_str(template, **kw))
 
     def put_cookie(self, name, value, path='/'):
-        cookie_value = '%s=%s; Path=%s' % (name, make_hash(value), path)
+        # Set cookie value with hash if value NOT empty
+        cookie_value = '%s=%s; Path=%s' % (name, make_hash(value) if value else '', path)
         self.response.headers.add_header('Set-Cookie', str(cookie_value))
 
     def get_cookie(self, name):
@@ -176,7 +177,7 @@ class BlogRegisterSuccess(BaseHandler):
         # Read cookie
         username = self.get_cookie('username')
 
-        # show welcome page if cookie valid else
+        # Show welcome page if cookie valid else
         # redirect to signup page
         if username:
             self.render('register_success.html', username=username)
@@ -210,7 +211,7 @@ class BlogLogin(BaseHandler):
         if not pwd:
             error_pwd = "That's not a valid password."
 
-        # show welcome page in case of not error else
+        # Show welcome page in case of not error else
         # render login page
         if not (error_username or error_pwd):
             self.redirect('/blog/signup/welcome')
@@ -220,11 +221,21 @@ class BlogLogin(BaseHandler):
                               error_pwd if error_pwd else '')
 
 
+class BlogLogout(BaseHandler):
+    def get(self):
+        # Clear cookie
+        self.put_cookie('username', '')
+
+        # Show signup page
+        self.redirect('/blog/signup')
+
+
 app = webapp2.WSGIApplication([
     ('/blog', BlogFrontPage),
     ('/blog/newpost', BlogNewPost),
     ('/blog/([0-9]+)', BlogDisplayPost),
     ('/blog/signup', BlogRegister),
     ('/blog/signup/welcome', BlogRegisterSuccess),
-    ('/blog/login', BlogLogin)
+    ('/blog/login', BlogLogin),
+    ('/blog/logout', BlogLogout)
 ], debug=True)
