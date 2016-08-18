@@ -3,7 +3,7 @@ import webapp2
 import jinja2
 from google.appengine.ext import db
 import re
-import hashlib
+import hmac
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -16,11 +16,14 @@ USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 PWD_RE = re.compile(r"^.{3,20}$")
 EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
 
+
 def valid_username(username):
     return USER_RE.match(username)
 
+
 def valid_pwd(pwd):
     return PWD_RE.match(pwd)
+
 
 def valid_email(email):
     return not email or EMAIL_RE.match(email)
@@ -28,8 +31,12 @@ def valid_email(email):
 
 # Hashing methods
 # for username
+hash_key = 'fkahfdjkdflk'
+
+
 def make_hash(value):
-    return '%s|%s' % (value, hashlib.md5(value).hexdigest())
+    return '%s|%s' % (value, hmac.new(hash_key, value).hexdigest())
+
 
 def check_hash(hash_value):
     value = hash_value.split('|')[0]
