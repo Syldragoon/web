@@ -3,7 +3,10 @@ import webapp2
 import jinja2
 from google.appengine.ext import db
 import re
+import hashlib
 import hmac
+import random
+import string
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -30,7 +33,7 @@ def valid_email(email):
 
 
 # Hashing methods
-# for username
+# for username (using secret key)
 hash_key = 'fkahfdjkdflk'
 
 
@@ -44,10 +47,61 @@ def check_hash(hash_value):
         return value
 
 
-# DB definition
+# for password (using salt)
+def make_salt():
+    return ''.join([random.choice(string.ascii_letters) for i in xrange(5)])
+
+
+def make_hash_salt(value, salt=None):
+    if not salt:
+        salt = make_salt()
+    return '%s|%s' % (salt, hashlib.sha256(value + hash_key + salt).hexdigest())
+
+
+def check_hash_salt(value, hash_value):
+    salt = hash_value.split('|')[0]
+    return make_hash_salt(value, salt) == hash_value
+
+
+def make_hash_pw(name, pwd, salt=None):
+    return make_hash_salt(name + pwd, salt)
+
+
+def check_hash_pw(name, pwd, hash_value):
+    return check_hash_salt(name + pwd, hash_value)
+
+
+# DB definitions
 class BlogEntry(db.Model):
     subject = db.StringProperty(required=True)
     content = db.TextProperty(required=True)
+
+
+class User(db.Model):
+    name = db.StringProperty(required=True)
+    pwd_hash = db.StringProperty(required=True)
+    email = db.StringProperty()
+
+    @classmethod
+    def by_id(cls, user_id):
+        if user_id.isdigit():
+            return User.get_by_id(int(user_id))
+
+    @classmethod
+    def by_name(cls, name):
+        return User.all().filter('name =', name).get()
+
+    @classmethod
+    def register(cls, name, pwd, email):
+        return User(name=name,
+                    pwd_hash=make_hash_pw(name, pwd),
+                    email=email)
+
+    @classmethod
+    def login(cls, name, pwd):
+        user = cls.by_name(name)
+        if user and check_hash_pw(name, pwd, user.pwd_hash):
+            return user
 
 
 class BaseHandler(webapp2.RequestHandler):
