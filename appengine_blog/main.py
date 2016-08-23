@@ -211,19 +211,24 @@ class BlogRegister(BaseHandler):
         # Check if user already exists through cookie
         # if it was ok
         username_error = "That's not a valid username."
-        if username_ok:
-            username_old = self.get_cookie('username')
-            if username_old and (username == username_old):
+        if username_ok and pwd_ok:
+            # check if user does not exist already
+            if User.login(username, pwd):
+
                 username_ok = False
                 username_error = "Username already exists."
 
         if username_ok and pwd_ok and email_ok:
+            # Populate DB with new user
+            user = User.register(username, pwd, email)
+            user.put()
 
             # Add cookie with username
             self.put_cookie('username', username)
 
             # Show welcome page
             self.redirect('/blog/signup/welcome')
+
         else:
             # Show signup page with some input data and errors
             self.render_register(username,
@@ -258,23 +263,27 @@ class BlogLogin(BaseHandler):
         username = self.request.get('username')
         pwd = self.request.get('password')
 
-        # Read cookie
-        cookie_username = self.get_cookie('username')
-
         # Validity checks
         error_username = None
         error_pwd = None
 
         if not username:
             error_username = "That's not a valid username."
-        elif not cookie_username or (username != cookie_username):
-            error_username = 'Unknown username'
         if not pwd:
             error_pwd = "That's not a valid password."
+
+        # Retrieve user from DB
+        if not (error_username or error_pwd):
+            user = User.login(username, pwd)
+            if not user:
+                error_username = 'Unknown username'
 
         # Show welcome page in case of not error else
         # render login page
         if not (error_username or error_pwd):
+            # Add cookie with username
+            self.put_cookie('username', username)
+
             self.redirect('/blog/signup/welcome')
         else:
             self.render_login(username,
