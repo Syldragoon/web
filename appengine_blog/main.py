@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import random
 import string
+import json
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -75,6 +76,10 @@ def check_hash_pw(name, pwd, hash_value):
 class BlogEntry(db.Model):
     subject = db.StringProperty(required=True)
     content = db.TextProperty(required=True)
+    created = db.DateTimeProperty(auto_now_add=True)
+
+    def to_json(self):
+        return {'subject': self.subject, 'content': self.content, 'created': self.created.strftime('%c')}
 
 
 class User(db.Model):
@@ -133,6 +138,18 @@ class BlogFrontPage(BaseHandler):
         self.render('front_page.html', posts=posts)
 
 
+class BlogFrontPageJson(BaseHandler):
+    def get(self):
+        # Update response content type to JSON
+        self.response.content_type = 'application/json'
+
+        # Run query to retrieve posts
+        posts = db.GqlQuery("select * from BlogEntry")
+
+        # Compute JSON and return it
+        self.write(json.dumps([post.to_json() for post in posts]))
+
+
 class BlogNewPost(BaseHandler):
     def render_new_post(self, subject='', content='', error=''):
         self.render('new_post.html',
@@ -178,8 +195,19 @@ class BlogDisplayPost(BaseHandler):
         self.render('display_post.html', post=post)
 
 
-class BlogRegister(BaseHandler):
+class BlogDisplayPostJson(BaseHandler):
+    def get(self, post_id):
+        # Update response content type to JSON
+        self.response.content_type = 'application/json'
 
+        # Run query to retrieve specific post
+        post = BlogEntry.get_by_id(int(post_id))
+
+        # Compute JSON and return it
+        self.write(json.dumps(post.to_json()))
+
+
+class BlogRegister(BaseHandler):
     def render_register(self,
                          username='',
                          email='',
@@ -307,5 +335,8 @@ app = webapp2.WSGIApplication([
     ('/blog/signup', BlogRegister),
     ('/blog/signup/welcome', BlogRegisterSuccess),
     ('/blog/login', BlogLogin),
-    ('/blog/logout', BlogLogout)
+    ('/blog/logout', BlogLogout),
+    # JSON outputs
+    ('/blog/.json', BlogFrontPageJson),
+    ('/blog/([0-9]+).json', BlogDisplayPostJson)
 ], debug=True)
