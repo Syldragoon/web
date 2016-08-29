@@ -2,12 +2,14 @@ import os
 import webapp2
 import jinja2
 from google.appengine.ext import db
+from google.appengine.api import memcache
 import re
 import hashlib
 import hmac
 import random
 import string
 import json
+import time
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -109,6 +111,27 @@ class User(db.Model):
             return user
 
 
+def get_posts(update=False):
+    posts = None
+
+    # Cache set: return case content
+    if not update:
+        posts = memcache.get("posts")
+
+    # Cache miss: do DB query
+    if update or not posts:
+        print 'DB query'
+        posts = db.GqlQuery("select * from BlogEntry")
+
+        # Set cache
+        memcache.set("posts", posts)
+
+        # Update last query time
+        memcache.set("queried_time", time.time())
+
+    return posts
+
+
 class BaseHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -134,8 +157,16 @@ class BaseHandler(webapp2.RequestHandler):
 class BlogFrontPage(BaseHandler):
     def get(self):
         # Run query to retrieve posts
-        posts = db.GqlQuery("select * from BlogEntry")
-        self.render('front_page.html', posts=posts)
+        posts = get_posts()
+
+        # Compute time diff from queried time
+        # in seconds
+        diff_queried_time = 0
+        queried_time = memcache.get("queried_time")
+        if queried_time:
+            diff_queried_time = int(time.time() - queried_time)
+
+        self.render('front_page.html', posts=posts, diff_queried_time=diff_queried_time)
 
 
 class BlogFrontPageJson(BaseHandler):
@@ -144,7 +175,7 @@ class BlogFrontPageJson(BaseHandler):
         self.response.content_type = 'application/json'
 
         # Run query to retrieve posts
-        posts = db.GqlQuery("select * from BlogEntry")
+        posts = get_posts()
 
         # Compute JSON and return it
         self.write(json.dumps([post.to_json() for post in posts]))
@@ -174,6 +205,9 @@ class BlogNewPost(BaseHandler):
             e.put()
             e_id = e.key().id()
             print "Adding new entry id %d" % e_id
+
+            # Update cache with new posts
+            get_posts(True)
 
             # Render post display
             self.redirect('/blog/%d' % e_id)

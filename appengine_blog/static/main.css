@@ -13,3 +13,10 @@ body
 {
     color: red;
 }
+
+.last_queried
+{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
