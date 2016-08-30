@@ -80,6 +80,11 @@ class BlogEntry(db.Model):
     content = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
 
+    @classmethod
+    def by_id(cls, post_id):
+        if post_id.isdigit():
+            return BlogEntry.get_by_id(int(post_id))
+
     def to_json(self):
         return {'subject': self.subject, 'content': self.content, 'created': self.created.strftime('%c')}
 
@@ -130,6 +135,28 @@ def get_posts(update=False):
         memcache.set("queried_time", time.time())
 
     return posts
+
+
+def get_post(post_id, update=False):
+    post = None
+
+    # Cache set: return case content
+    if not update:
+        post = memcache.get(post_id)
+
+    # Cache miss: do DB query
+    if update or not post:
+        print 'DB query'
+        post = BlogEntry.by_id(post_id)
+
+        if post:
+            # Set cache
+            memcache.set(post_id, post)
+
+            # Update last query time
+            memcache.set("queried_time_post", time.time())
+
+    return post
 
 
 class BaseHandler(webapp2.RequestHandler):
@@ -223,10 +250,17 @@ class BlogNewPost(BaseHandler):
 class BlogDisplayPost(BaseHandler):
     def get(self, post_id):
         # Run query to retrieve specific post
-        post = BlogEntry.get_by_id(int(post_id))
+        post = get_post(post_id)
+
+        # Compute time diff from queried time
+        # in seconds
+        diff_queried_time = 0
+        queried_time = memcache.get("queried_time_post")
+        if queried_time:
+            diff_queried_time = int(time.time() - queried_time)
 
         # Render post display
-        self.render('display_post.html', post=post)
+        self.render('display_post.html', post=post, diff_queried_time=diff_queried_time)
 
 
 class BlogDisplayPostJson(BaseHandler):
@@ -235,7 +269,7 @@ class BlogDisplayPostJson(BaseHandler):
         self.response.content_type = 'application/json'
 
         # Run query to retrieve specific post
-        post = BlogEntry.get_by_id(int(post_id))
+        post = get_post(post_id)
 
         # Compute JSON and return it
         self.write(json.dumps(post.to_json()))
@@ -362,6 +396,15 @@ class BlogLogout(BaseHandler):
         self.redirect('/blog/signup')
 
 
+class BlogFlushCache(BaseHandler):
+    def get(self):
+        # Flush memcache
+        memcache.flush_all()
+
+        # Show front page
+        self.redirect('/blog')
+
+
 app = webapp2.WSGIApplication([
     ('/blog', BlogFrontPage),
     ('/blog/newpost', BlogNewPost),
@@ -370,6 +413,7 @@ app = webapp2.WSGIApplication([
     ('/blog/signup/welcome', BlogRegisterSuccess),
     ('/blog/login', BlogLogin),
     ('/blog/logout', BlogLogout),
+    ('/blog/flush', BlogFlushCache),
     # JSON outputs
     ('/blog/.json', BlogFrontPageJson),
     ('/blog/([0-9]+).json', BlogDisplayPostJson)
