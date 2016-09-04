@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <form method="post" action="{{'/_edit' + page_url}}">
+      <h2>Edit page</h2>
+      <label>
+          Content:
+          <textarea name="page_content"></textarea>
+      </label>
+      <br>
+      <br>
+      <label>
+          <input type="submit" value="Submit">
+      </label>
+  </form>
+{% endblock %}
