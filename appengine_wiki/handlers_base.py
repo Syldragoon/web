@@ -19,6 +19,7 @@ class BaseHandler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         user_id = self.get_cookie('user_id')
+        self.user = None
         if user_id:
             self.user = User.by_id(user_id)
 
@@ -31,7 +32,9 @@ class BaseHandler(webapp2.RequestHandler):
         return t.render(params)
 
     def render(self, template, **kw):
-        self.write(self.render_str(template, **kw))
+        # Add always user as first argument in order
+        # to notify templates whether or not user logged
+        self.write(self.render_str(template, user=self.user, **kw))
 
     def put_cookie(self, name, value, path='/'):
         # Set cookie value with hash if value NOT empty

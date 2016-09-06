@@ -5,13 +5,13 @@
         <label>
             User name:
             <input type="text" name="username" value="{{username}}">
-            <span class="error">{{errors[username] if username in errors}}</span>
+            <span class="error">{{error_username}}</span>
         </label>
         <br>
         <label>
             Password:
             <input type="password" name="password">
-            <span class="error">{{errors[pwd] if pwd in errors}}</span>
+            <span class="error">{{error_pwd}}</span>
         </label>
         <br>
         <br>

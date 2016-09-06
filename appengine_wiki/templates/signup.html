@@ -5,7 +5,7 @@
         <label>
             User name:
             <input type="text" name="username" value="{{username}}">
-            <span class="error">{{errors[username] if username in errors}}</span>
+            <span class="error">{{error_username}}</span>
         </label>
         <br>
         <label>
@@ -16,13 +16,13 @@
         <label>
             Re-type pasword:
             <input type="password" name="verify">
-            <span class="error">{{errors[pwd] if pwd in errors}}</span>
+            <span class="error">{{error_pwd}}</span>
         </label>
         <br>
         <label>
             Email address:
             <input type="text" name="email" value="{{email}}">
-            <span class="error">{{errors[email] if email in errors}}</span>
+            <span class="error">{{error_email}}</span>
         </label>
         <br>
         <br>

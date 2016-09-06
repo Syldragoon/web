@@ -13,3 +13,10 @@ body
 {
     color: red;
 }
+
+#user_auth
+{
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}

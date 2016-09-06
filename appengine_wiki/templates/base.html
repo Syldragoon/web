@@ -8,6 +8,17 @@
 <body>
     <div id="head">
         <h1>Sylwiki 06</h1>
+        <div id="user_auth">
+            <!-- If user logged -->
+            {% if user %}
+                <!-- Display logout -->
+                <a href="/logout">Log out</a>
+            {% else %}
+                <!-- Display register and login -->
+                <a href="/signup">Register</a>
+                <a href="/login">Log in</a>
+            {% endif %}
+        </div>
     </div>
 
     <div id="content">

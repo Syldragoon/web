@@ -6,7 +6,12 @@ from tools import *
 
 class Signup(BaseHandler):
     def render_signup(self, username='', email='', errors={}):
-        self.render('signup.html', username=username, email=email, errors=errors)
+        self.render('signup.html',
+                    username=username,
+                    email=email,
+                    error_username=errors['username'] if 'username' in errors else '',
+                    error_pwd=errors['pwd'] if 'pwd' in errors else '',
+                    error_email=errors['email'] if 'email' in errors else '')
 
     def get(self):
         self.render_signup()
@@ -56,7 +61,10 @@ class Signup(BaseHandler):
 
 class Login(BaseHandler):
     def render_login(self, username='', errors={}):
-        self.render('login.html', username=username, errors=errors)
+        self.render('login.html',
+                    username=username,
+                    error_username=errors['username'] if 'username' in errors else '',
+                    error_pwd=errors['pwd'] if 'pwd' in errors else '')
 
     def get(self):
         self.render_login()
