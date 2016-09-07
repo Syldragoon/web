@@ -1,6 +1,6 @@
 # Local dependencies
 from handlers_base import BaseHandler
-from datamodel import User
+from datamodel import User, Page
 from tools import *
 
 
@@ -55,7 +55,7 @@ class Signup(BaseHandler):
             self.redirect('/')
         else:
             # Format signup page
-            # with inputs
+            # with inputs and errors
             self.render_signup(username, email, errors)
 
 
@@ -103,7 +103,7 @@ class Login(BaseHandler):
             self.redirect('/')
         else:
             # Format login page
-            # with inputs
+            # with inputs and errors
             self.render_login(username, errors)
 
 
@@ -118,13 +118,70 @@ class Logout(BaseHandler):
 
 
 class EditPage(BaseHandler):
+    def render_edit_page(self, page_url, page_content='', error=''):
+        self.render('edit_page.html',
+                    page_url=page_url,
+                    page_content=page_content,
+                    error=error)
+
     def get(self, page_url):
-        self.render('edit_page.html', page_url=page_url)
+        # Render edit page only if logged in
+        # else return not authorized
+        if self.user:
+            self.render_edit_page(page_url)
+        else:
+            self.render_error(401, 'You need to be logged in order to edit page')
 
     def post(self, page_url):
-        self.redirect(page_url)
+        # Make sure user still logged in
+        # else return not authorized
+        if self.user:
+            # Retrieve inputs
+            page_content = self.request.get('page_content')
+
+            # Validity checks
+            error = None
+            if not page_content:
+                error = 'Invalid page content'
+
+            # if checks ok
+            if not error:
+                # Add new page
+                page = Page.new_page(self.user,
+                                     page_url,
+                                     page_content)
+                page.put()
+                print 'Page added for url %s' % page_url
+
+                # Redirect to wiki page
+                # Add page key in order to have updated results
+                # TODO: find alternative to page key
+                self.redirect('%s?key=%s' % (page_url, str(page.key().id())))
+            else:
+                # Format edit page
+                # with inputs and errors
+                self.render_edit_page(page_url, page_content, error)
+        else:
+            self.render_error(401, 'You need to be logged in order to edit page')
 
 
 class WikiPage(BaseHandler):
     def get(self, page_url):
-        self.render('wiki_page.html')
+        # Check whether or not
+        # input url was already created
+        page = None
+        # Use input key when redirected
+        # from edit page
+        # TODO: find alternative to page key
+        key = self.request.get('key')
+        if key:
+            page = Page.by_id(key)
+        else:
+            page = Page.get_page(page_url)
+        if page:
+            # If found, display content
+            print 'Page found for url %s' % page_url
+            self.render('wiki_page.html', page_content=page.page_content)
+        else:
+            # If not found, redirect to edit page
+            self.redirect('/_edit%s' % page_url)

@@ -36,6 +36,10 @@ class BaseHandler(webapp2.RequestHandler):
         # to notify templates whether or not user logged
         self.write(self.render_str(template, user=self.user, **kw))
 
+    def render_error(self, error_code, error_text):
+        self.render('error.html', error_code=error_code, error_text=error_text)
+        self.response.set_status(error_code)
+
     def put_cookie(self, name, value, path='/'):
         # Set cookie value with hash if value NOT empty
         cookie_value = '%s=%s; Path=%s' % (name, make_hash(str(value)) if value else '', path)
