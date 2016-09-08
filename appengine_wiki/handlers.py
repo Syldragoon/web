@@ -154,9 +154,7 @@ class EditPage(BaseHandler):
                 print 'Page added for url %s' % page_url
 
                 # Redirect to wiki page
-                # Add page key in order to have updated results
-                # TODO: find alternative to page key
-                self.redirect('%s?key=%s' % (page_url, str(page.key().id())))
+                self.redirect(page_url)
             else:
                 # Format edit page
                 # with inputs and errors
@@ -169,15 +167,7 @@ class WikiPage(BaseHandler):
     def get(self, page_url):
         # Check whether or not
         # input url was already created
-        page = None
-        # Use input key when redirected
-        # from edit page
-        # TODO: find alternative to page key
-        key = self.request.get('key')
-        if key:
-            page = Page.by_id(key)
-        else:
-            page = Page.get_page(page_url)
+        page = Page.get_page(page_url)
         if page:
             # If found, display content
             print 'Page found for url %s' % page_url
