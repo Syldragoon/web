@@ -45,7 +45,6 @@ class Signup(BaseHandler):
         if not errors:
             # Add new user into DB
             user = User.signup(username, pwd, email)
-            user.put()
             print 'New user signed up'
 
             # Add cookie
@@ -147,10 +146,9 @@ class EditPage(BaseHandler):
             # if checks ok
             if not error:
                 # Add new page
-                page = Page.new_page(self.user,
-                                     page_url,
-                                     page_content)
-                page.put()
+                Page.new_page(self.user,
+                              page_url,
+                              page_content)
                 print 'Page added for url %s' % page_url
 
                 # Redirect to wiki page

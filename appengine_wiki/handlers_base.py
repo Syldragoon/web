@@ -11,7 +11,7 @@ from tools import *
 
 # Jinja2 setup
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                autoescape=True)
 
 
@@ -21,7 +21,7 @@ class BaseHandler(webapp2.RequestHandler):
         user_id = self.get_cookie('user_id')
         self.user = None
         if user_id:
-            self.user = User.by_id(user_id)
+            self.user = User.get_user(user_id)
 
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
