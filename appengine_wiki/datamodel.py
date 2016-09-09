@@ -40,6 +40,9 @@ class User(db.Model):
         print 'Cache: User: set key %s' % cache_key
         memcache.set(cache_key, user)
 
+        # Return user
+        return user
+
     @classmethod
     def login_db(cls, name, pwd):
         user = cls.by_name(name)
@@ -106,6 +109,9 @@ class Page(db.Model):
         cache_key = 'page_%s' % page_url
         print 'Cache: Page: set key %s' % cache_key
         memcache.set(cache_key, page)
+
+        # Return page
+        return page
 
     @classmethod
     def get_page_db(cls, page_url):

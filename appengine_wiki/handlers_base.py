@@ -18,8 +18,11 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
 class BaseHandler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
-        user_id = self.get_cookie('user_id')
+
         self.user = None
+        self.page = None
+
+        user_id = self.get_cookie('user_id')
         if user_id:
             self.user = User.get_user(user_id)
 
@@ -34,7 +37,8 @@ class BaseHandler(webapp2.RequestHandler):
     def render(self, template, **kw):
         # Add always user as first argument in order
         # to notify templates whether or not user logged
-        self.write(self.render_str(template, user=self.user, **kw))
+        # Add page for edit url to use if defined and if user logged
+        self.write(self.render_str(template, user=self.user, page=self.page, **kw))
 
     def render_error(self, error_code, error_text):
         self.render('error.html', error_code=error_code, error_text=error_text)

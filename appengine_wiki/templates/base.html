@@ -8,9 +8,13 @@
 <body>
     <div id="head">
         <h1>Sylwiki 06</h1>
-        <div id="user_auth">
+        <div id="action_box">
             <!-- If user logged -->
             {% if user %}
+                <!-- Display edit if possible -->
+                {% if page %}
+                  <a href="/_edit{{page.key().name()}}">Edit</a>
+                {% endif %}
                 <!-- Display logout -->
                 <a href="/logout">Log out</a>
             {% else %}

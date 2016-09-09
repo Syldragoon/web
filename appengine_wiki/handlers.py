@@ -127,7 +127,15 @@ class EditPage(BaseHandler):
         # Render edit page only if logged in
         # else return not authorized
         if self.user:
-            self.render_edit_page(page_url)
+            # Fill page content if page already existing
+            page_content = ''
+            self.page = Page.get_page(page_url)
+            if self.page:
+                print 'Page found for url %s' % page_url
+                page_content = self.page.page_content
+
+            # Render edit page
+            self.render_edit_page(page_url, page_content)
         else:
             self.render_error(401, 'You need to be logged in order to edit page')
 
@@ -146,9 +154,9 @@ class EditPage(BaseHandler):
             # if checks ok
             if not error:
                 # Add new page
-                Page.new_page(self.user,
-                              page_url,
-                              page_content)
+                self.page = Page.new_page(self.user,
+                                          page_url,
+                                          page_content)
                 print 'Page added for url %s' % page_url
 
                 # Redirect to wiki page
@@ -165,11 +173,11 @@ class WikiPage(BaseHandler):
     def get(self, page_url):
         # Check whether or not
         # input url was already created
-        page = Page.get_page(page_url)
-        if page:
+        self.page = Page.get_page(page_url)
+        if self.page:
             # If found, display content
             print 'Page found for url %s' % page_url
-            self.render('wiki_page.html', page_content=page.page_content)
+            self.render('wiki_page.html', page_content=self.page.page_content)
         else:
             # If not found, redirect to edit page
             self.redirect('/_edit%s' % page_url)
