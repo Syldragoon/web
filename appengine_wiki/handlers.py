@@ -147,9 +147,8 @@ class EditPage(BaseHandler):
             page_content = self.request.get('page_content')
 
             # Validity checks
+            # Allow for now any content
             error = None
-            if not page_content:
-                error = 'Invalid page content'
 
             # if checks ok
             if not error:

@@ -81,7 +81,7 @@ class User(db.Model):
 
 class Page(db.Model):
     user_id = db.IntegerProperty(required=True)
-    page_content = db.TextProperty(required=True)
+    page_content = db.TextProperty()
 
     @classmethod
     def by_key(cls, page_key):
