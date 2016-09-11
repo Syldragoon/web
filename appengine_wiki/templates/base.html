@@ -10,18 +10,24 @@
         <h1>Sylwiki 06</h1>
         <div id="action_box">
             <!-- If user logged -->
-            {% if user %}
-                <!-- Display edit if possible -->
-                {% if page %}
-                  <a href="/_edit{{page.key().name()}}">Edit</a>
-                {% endif %}
-                <!-- Display logout -->
-                <a href="/logout">Log out</a>
-            {% else %}
-                <!-- Display register and login -->
-                <a href="/signup">Register</a>
-                <a href="/login">Log in</a>
-            {% endif %}
+            <table>
+                <tr>
+                  {% if user %}
+                      <!-- Display edit if possible -->
+                      {% if page %}
+                        <td><a href="/_edit{{page.key().name()}}">Edit</a></td>
+                      {% endif %}
+                      <!-- Display user name -->
+                      <td id="username">{{user.name}}</td>
+                      <!-- Display logout -->
+                      <td><a href="/logout">Log out</a></td>
+                  {% else %}
+                      <!-- Display register and login -->
+                      <td><a href="/signup">Register</a></td>
+                      <td><a href="/login">Log in</a></td>
+                  {% endif %}
+              </tr>
+          </table>
         </div>
     </div>
 

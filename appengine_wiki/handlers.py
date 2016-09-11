@@ -14,6 +14,9 @@ class Signup(BaseHandler):
                     error_email=errors['email'] if 'email' in errors else '')
 
     def get(self):
+        # Compute new url from previous one
+        self.set_new_url_from_previous(['/signup', '/login'])
+
         self.render_signup()
 
     def post(self):
@@ -22,6 +25,7 @@ class Signup(BaseHandler):
         pwd = self.request.get('password')
         pwd_retry = self.request.get('verify')
         email = self.request.get('email')
+        new_url = str(self.request.get('new_url'))
 
         # Validity checks
         errors = {}
@@ -50,8 +54,8 @@ class Signup(BaseHandler):
             # Add cookie
             self.login(user)
 
-            # Redirect to front page
-            self.redirect('/')
+            # Redirect to new url
+            self.redirect(new_url)
         else:
             # Format signup page
             # with inputs and errors
@@ -66,12 +70,16 @@ class Login(BaseHandler):
                     error_pwd=errors['pwd'] if 'pwd' in errors else '')
 
     def get(self):
+        # Compute new url from previous one
+        self.set_new_url_from_previous(['/login', '/submit'])
+
         self.render_login()
 
     def post(self):
         # Retrieve inputs
         username = self.request.get('username')
         pwd = self.request.get('password')
+        new_url = str(self.request.get('new_url'))
 
         # Validity checks
         errors = {}
@@ -98,8 +106,8 @@ class Login(BaseHandler):
             self.login(user)
             print 'User logged in'
 
-            # Redirect to front page
-            self.redirect('/')
+            # Redirect to new url
+            self.redirect(new_url)
         else:
             # Format login page
             # with inputs and errors
@@ -108,12 +116,15 @@ class Login(BaseHandler):
 
 class Logout(BaseHandler):
     def get(self):
+        # Compute new url from previous one
+        self.set_new_url_from_previous(['/logout'])
+
         # Remove cookie
         self.logout()
         print 'User logged out'
 
-        # Redirect to signup page
-        self.redirect('/signup')
+        # Redirect to new url
+        self.redirect(self.new_url)
 
 
 class EditPage(BaseHandler):
@@ -124,48 +135,55 @@ class EditPage(BaseHandler):
                     error=error)
 
     def get(self, page_url):
-        # Render edit page only if logged in
-        # else return not authorized
-        if self.user:
-            # Fill page content if page already existing
-            page_content = ''
-            self.page = Page.get_page(page_url)
-            if self.page:
-                print 'Page found for url %s' % page_url
-                page_content = self.page.page_content
+        # Redirect to login page if NOT logged
+        if not self.user:
+            self.redirect('/login')
 
-            # Render edit page
-            self.render_edit_page(page_url, page_content)
-        else:
-            self.render_error(401, 'You need to be logged in order to edit page')
+        # Render edit page
+        # Fill page content if page already existing
+        page_content = ''
+        self.page = Page.get_page(page_url)
+        if self.page:
+            print 'Page found for url %s' % page_url
+            page_content = self.page.page_content
+
+        # Render edit page
+        self.render_edit_page(page_url, page_content)
 
     def post(self, page_url):
-        # Make sure user still logged in
-        # else return not authorized
-        if self.user:
-            # Retrieve inputs
-            page_content = self.request.get('page_content')
+        # Return not authorized if NOT logged
+        if not self.user:
+            self.render_error(401, 'You need to be logged in order to edit page')
+            return
 
-            # Validity checks
-            # Allow for now any content
-            error = None
+        # Retrieve inputs
+        page_content = self.request.get('page_content')
 
-            # if checks ok
-            if not error:
-                # Add new page
+        # Validity checks
+        # Allow for now any content
+        error = None
+
+        # if checks ok
+        if not error:
+            # Retrieve page
+            # if already existing
+            self.page = Page.get_page(page_url)
+
+            # Add new page version
+            # in case of new page or
+            # in case of new content
+            if (not self.page) or (page_content != self.page.page_content):
                 self.page = Page.new_page(self.user,
                                           page_url,
                                           page_content)
                 print 'Page added for url %s' % page_url
 
-                # Redirect to wiki page
-                self.redirect(page_url)
-            else:
-                # Format edit page
-                # with inputs and errors
-                self.render_edit_page(page_url, page_content, error)
+            # Redirect to wiki page
+            self.redirect(page_url)
         else:
-            self.render_error(401, 'You need to be logged in order to edit page')
+            # Format edit page
+            # with inputs and errors
+            self.render_edit_page(page_url, page_content, error)
 
 
 class WikiPage(BaseHandler):

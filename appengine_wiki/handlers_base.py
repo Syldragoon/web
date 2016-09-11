@@ -5,6 +5,9 @@ import webapp2
 import os
 import jinja2
 
+# Monitoring
+import logging
+
 # Local dependencies
 from datamodel import User
 from tools import *
@@ -21,6 +24,7 @@ class BaseHandler(webapp2.RequestHandler):
 
         self.user = None
         self.page = None
+        self.new_url = '/'
 
         user_id = self.get_cookie('user_id')
         if user_id:
@@ -38,7 +42,8 @@ class BaseHandler(webapp2.RequestHandler):
         # Add always user as first argument in order
         # to notify templates whether or not user logged
         # Add page for edit url to use if defined and if user logged
-        self.write(self.render_str(template, user=self.user, page=self.page, **kw))
+        # New URL allows to keep track of the next url to use for redirection.
+        self.write(self.render_str(template, user=self.user, page=self.page, new_url=self.new_url, **kw))
 
     def render_error(self, error_code, error_text):
         self.render('error.html', error_code=error_code, error_text=error_text)
@@ -54,6 +59,27 @@ class BaseHandler(webapp2.RequestHandler):
         hash_value = self.request.cookies.get(name)
         if hash_value:
             return check_hash(hash_value)
+
+    def get_previous_url(self):
+        full_url = self.request.headers.get('referer')
+        if full_url:
+            return '/' + '/'.join(full_url.split('/')[3:])
+
+    '''
+    Used to set new url to use for redirection
+    with previous url
+
+    If previous url is not found or is the same as one url to default,
+    a default url is used.
+    '''
+    def set_new_url_from_previous(self, urls_to_default=[], default_url='/'):
+        # Compute new url to be redirected
+        # as previous url
+        self.new_url = self.get_previous_url()
+        # if empty or set to current url, set default one
+        if not self.new_url or (self.new_url in urls_to_default):
+            self.new_url = default_url
+        logging.info('New url computed from previous: %s' % self.new_url)
 
     def login(self, user):
         self.put_cookie('user_id', user.key().id())
