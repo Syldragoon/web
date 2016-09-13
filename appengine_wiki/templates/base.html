@@ -15,7 +15,7 @@
                   {% if user %}
                       <!-- Display edit if possible -->
                       {% if page %}
-                        <td><a href="/_edit{{page.key().name()}}">Edit</a></td>
+                        <td><a href="/_edit{{page.page_url}}">Edit</a></td>
                       {% endif %}
                       <!-- Display user name -->
                       <td id="username">{{user.name}}</td>

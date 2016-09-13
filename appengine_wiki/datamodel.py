@@ -80,8 +80,10 @@ class User(db.Model):
 
 
 class Page(db.Model):
+    page_url = db.StringProperty(required=True)
     user_id = db.IntegerProperty(required=True)
     page_content = db.TextProperty()
+    created = db.DateTimeProperty(auto_now_add=True)
 
     @classmethod
     def by_key(cls, page_key):
@@ -90,10 +92,12 @@ class Page(db.Model):
         return db.get(page_k)
 
     @classmethod
+    def query_by_url(cls, page_url):
+        return Page.all().filter('page_url =', page_url).order('-created')
+
+    @classmethod
     def new_page_db(cls, user, page_url, page_content):
-        # Page key set on purpose
-        # in order to be url (should be unique)
-        page = Page(key_name=page_url,
+        page = Page(page_url=page_url,
                     user_id=user.key().id(),
                     page_content=page_content)
         print 'DB query: Page: insertion'
@@ -106,31 +110,45 @@ class Page(db.Model):
         page = cls.new_page_db(user, page_url, page_content)
 
         # Update cache
-        cache_key = 'page_%s' % page_url
+        cache_key = 'page_list_%s' % page_url
+        page_list = cls.get_page_list(page_url)
         print 'Cache: Page: set key %s' % cache_key
-        memcache.set(cache_key, page)
+        # If pages already existing for given URL,
+        # add new page in front of list
+        if page_list:
+            page_list.insert(0, page)
+            memcache.set(cache_key, page_list)
+        # Else, create new cache with single page list
+        else:
+            memcache.set(cache_key, [page])
 
         # Return page
         return page
 
     @classmethod
-    def get_page_db(cls, page_url):
-        # Page key is url.
-        return cls.by_key(page_url)
+    def get_page_list_db(cls, page_url):
+        print 'DB query: Page: select'
+        return cls.query_by_url(page_url).fetch(None)
 
     @classmethod
-    def get_page(cls, page_url):
-        cache_key = 'page_%s' % page_url
+    def get_page_list(cls, page_url):
+        cache_key = 'page_list_%s' % page_url
         # Cache set
         print 'Cache: Page: get key %s' % cache_key
-        page = memcache.get(cache_key)
+        page_list = memcache.get(cache_key)
         # Cache miss
-        if not page:
+        if not page_list:
             # DB query
-            page = cls.get_page_db(page_url)
+            page_list = cls.get_page_list_db(page_url)
 
             # Update cache
             print 'Cache: Page: set key %s' % cache_key
-            memcache.set(cache_key, page)
+            memcache.set(cache_key, page_list)
 
-        return page
+        return page_list
+
+    @classmethod
+    def get_page(cls, page_url):
+        page_list = cls.get_page_list(page_url)
+        if page_list and page_list[0]:
+            return page_list[0]
