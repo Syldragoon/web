@@ -13,9 +13,10 @@
             <table>
                 <tr>
                   {% if user %}
-                      <!-- Display edit if possible -->
+                      <!-- Display page edit and history if possible -->
                       {% if page %}
                         <td><a href="/_edit{{page.page_url}}">Edit</a></td>
+                        <td><a href="/_history{{page.page_url}}">History</a></td>
                       {% endif %}
                       <!-- Display user name -->
                       <td id="username">{{user.name}}</td>

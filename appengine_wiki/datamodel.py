@@ -147,8 +147,12 @@ class Page(db.Model):
 
         return page_list
 
+    '''
+    The oldest page for given url is considered to be at version 1 and
+    the most recent (the recent one) has version 0.
+    '''
     @classmethod
-    def get_page(cls, page_url):
+    def get_page(cls, page_url, version=0):
         page_list = cls.get_page_list(page_url)
-        if page_list and page_list[0]:
-            return page_list[0]
+        if page_list and page_list[-version]:
+            return page_list[-version]

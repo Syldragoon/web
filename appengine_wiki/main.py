@@ -2,7 +2,7 @@
 import webapp2
 
 # Local dependencies
-from handlers import Signup, Login, Logout, EditPage, WikiPage
+from handlers import *
 
 PAGE_RE = r'(/(?:[a-zA-Z0-9_-]+/?)*)'
 app = webapp2.WSGIApplication([
@@ -10,5 +10,6 @@ app = webapp2.WSGIApplication([
     ('/login', Login),
     ('/logout', Logout),
     ('/_edit' + PAGE_RE, EditPage),
+    ('/_history' + PAGE_RE, HistoryPage),
     (PAGE_RE, WikiPage),
     ], debug=True)

@@ -139,10 +139,18 @@ class EditPage(BaseHandler):
         if not self.user:
             self.redirect('/login')
 
+        # Retrieve inputs
+        # Optional version to access specific page in history
+        # Set by default to 0 (most recent page)
+        version_raw = self.request.get('v')
+        version = 0
+        if version_raw and version_raw.isdigit():
+            version = int(version_raw)
+
         # Render edit page
         # Fill page content if page already existing
         page_content = ''
-        self.page = Page.get_page(page_url)
+        self.page = Page.get_page(page_url, version)
         if self.page:
             print 'Page found for url %s' % page_url
             page_content = self.page.page_content
@@ -186,11 +194,39 @@ class EditPage(BaseHandler):
             self.render_edit_page(page_url, page_content, error)
 
 
+class HistoryPage(BaseHandler):
+    def get(self, page_url):
+        # Get pages for input url
+        page_list = Page.get_page_list(page_url)
+
+        # Return error in case no page was found
+        if not page_list:
+            self.render_error(404, 'No page found for URL %s' % page_url)
+            return
+
+        print 'Page list found for url %s' % page_url
+
+        # Update current page
+        # in order to have page accessible from base HTML
+        self.page = page_list[0]
+
+        # Display history
+        self.render('history_page.html', page_list=page_list)
+
+
 class WikiPage(BaseHandler):
     def get(self, page_url):
+        # Retrieve inputs
+        # Optional version to access specific page in history
+        # Set by default to 0 (most recent page)
+        version_raw = self.request.get('v')
+        version = 0
+        if version_raw and version_raw.isdigit():
+            version = int(version_raw)
+
         # Check whether or not
         # input url was already created
-        self.page = Page.get_page(page_url)
+        self.page = Page.get_page(page_url, version)
         if self.page:
             # If found, display content
             print 'Page found for url %s' % page_url

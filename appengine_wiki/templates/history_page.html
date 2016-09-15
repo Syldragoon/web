@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+    <table>
+        <tr>
+            <th>Version</th>
+            <th>Created</th>
+            <th>Content</th>
+            <th>Edition</th>
+            <th>Access</th>
+        </tr>
+        {% set version = page_list|length %}
+        {% for page in page_list %}
+            <tr>
+                <td>
+                    {{version}}
+                </td>
+                <td>
+                    {{page.created.strftime('%c')}}
+                </td>
+                <td>
+                    {{page.page_content | safe}}
+                </td>
+                <td>
+                    <a href="/_edit{{page.page_url}}?v={{version}}">Edit</a>
+                </td>
+                <td>
+                    <a href="{{page.page_url}}?v={{version}}">View</a>
+                </td>
+            </tr>
+            {% set version = version - 1 %}
+        {% endfor %}
+    </table>
+{% endblock %}
