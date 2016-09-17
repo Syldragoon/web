@@ -1,5 +1,7 @@
 body
 {
+    position: relative;
+
     font-family: Helvetica, Arial, sans-serif;
     font-size: 14px;
 
@@ -7,6 +9,12 @@ body
     margin: 0 auto;
     padding: 10px;
     color: #333;
+}
+
+.page_edit_content
+{
+    width: 600px;
+    height: 300px;
 }
 
 .error

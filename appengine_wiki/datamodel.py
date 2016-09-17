@@ -96,20 +96,28 @@ class Page(db.Model):
         return Page.all().filter('page_url =', page_url).order('-created')
 
     @classmethod
-    def new_page_db(cls, user, page_url, page_content):
+    def insert_page_db(cls, page):
+        print 'DB query: Page: insertion'
+        page.put()
+
+    @classmethod
+    def new_page_db(cls, user, page_url, page_content, doInsert=False):
         page = Page(page_url=page_url,
                     user_id=user.key().id(),
                     page_content=page_content)
-        print 'DB query: Page: insertion'
-        page.put()
+        if doInsert:
+            cls.insert_page_db(page)
         return page
 
     @classmethod
     def new_page(cls, user, page_url, page_content):
         # Create new page
+        # without adding to the DB
         page = cls.new_page_db(user, page_url, page_content)
 
         # Update cache
+        # WARNING: while cache for the URL is empty, it is filled from DB;
+        #          this explains why DB should be update AFTER cache.
         cache_key = 'page_list_%s' % page_url
         page_list = cls.get_page_list(page_url)
         print 'Cache: Page: set key %s' % cache_key
@@ -121,6 +129,9 @@ class Page(db.Model):
         # Else, create new cache with single page list
         else:
             memcache.set(cache_key, [page])
+
+        # Add page to DB
+        cls.insert_page_db(page)
 
         # Return page
         return page

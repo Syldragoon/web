@@ -165,7 +165,7 @@ class EditPage(BaseHandler):
             return
 
         # Retrieve inputs
-        page_content = self.request.get('page_content')
+        page_content = self.request.get('content')
 
         # Validity checks
         # Allow for now any content
