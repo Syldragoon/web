@@ -54,22 +54,22 @@ EventListener.prototype.handleKeyUp = function(event)
 // check keyboard keys
 EventListener.prototype.handleKeys = function()
 {
-    if (gCurrentlyPressedKeys[33])
-    {
-	// Page Up
-	gZZoom -= 0.05;
-    }
+  // Minus key
+  if (gCurrentlyPressedKeys[109])
+  {
+    gZZoom -= 0.05;
+  }
 
-    if (gCurrentlyPressedKeys[34])
-    {
-	// Page Down
-	gZZoom += 0.05;
-    }
+  // Plus key
+  if (gCurrentlyPressedKeys[107])
+  {
+    gZZoom += 0.05;
+  }
     
-    for (var i = 0; i < gMeshList.length; i++)
-    {
-	gMeshList[i].handleKeys(gCurrentlyPressedKeys);
-    }
+  for (var i = 0; i < gMeshList.length; i++)
+  {
+    gMeshList[i].handleKeys(gCurrentlyPressedKeys);
+  }
 }
 
 // mouse events
